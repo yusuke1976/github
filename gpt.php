@@ -65,7 +65,7 @@ $profile_image = $user['profile_image'] ? 'uploads/' . $user['profile_image'] : 
             }
 
             .container {
-                max-width: 960px;
+                max-width: 1500px;
             }
             textarea {
                 width:100%;
@@ -113,8 +113,9 @@ $profile_image = $user['profile_image'] ? 'uploads/' . $user['profile_image'] : 
                             </div>
 
                             <div class="input-group">
-                                <input type="text" id="formText" name="myFormText" class="form-control" placeholder="本のタイトルを入力" aria-label="books" aria-describedby="btn">
-                                <button id="btn" class="btn btn-primary">検索</button>
+                                <input type="text" id="formText" name="myFormText" class="form-control" placeholder="キーワード（本のタイトル、著者等）を入力" aria-label="books" aria-describedby="btn">
+                                <button id="btn" class="btn btn-primary"><i class="fas fa-search"></i>検索</button>
+                                <button class="btn btn-secondary" type="button" id="resetSearch"><i class="fas fa-undo"></i>リセット</button>
                             </div>                            
                     
                     </div>
@@ -125,6 +126,15 @@ $profile_image = $user['profile_image'] ? 'uploads/' . $user['profile_image'] : 
             </div>
 
         </main>
+
+    <!-- 検索リセット用のJavaScript -->
+    <script>
+    document.getElementById('resetSearch').addEventListener('click', function() {
+        document.getElementById('searchInput').value = '';
+        document.getElementById('searchForm').submit();
+    });
+    </script>
+
     </body>
-    <script src="indexchatbb.js"></script>
+    <script src="gpt.js"></script>
 </html>
