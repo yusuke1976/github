@@ -54,7 +54,7 @@ $profile_image = $user['profile_image'] ? 'uploads/' . $user['profile_image'] : 
             color: #ffffff !important;
             font-weight: 350;
             font-size: 1.2rem;
-            margin-left: 10px; /* この行を追加 */
+            margin-left: 10px; 
         }
 
         .navbar-brand:hover {
@@ -62,7 +62,7 @@ $profile_image = $user['profile_image'] ? 'uploads/' . $user['profile_image'] : 
         }
 
         .welcome-message {
-            padding-left: 15px; /* この行を追加 */
+            padding-left: 15px; 
         }
 
         .card {

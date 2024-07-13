@@ -2,10 +2,11 @@
 
 session_start();
 include "funcs.php";
-sschk();
 
 // DB接続
 $pdo = db_conn();
+
+sschk();
 
 // 現在のユーザー情報を取得
 $stmt = $pdo->prepare("SELECT * FROM gs_user_table5 WHERE username = :username");

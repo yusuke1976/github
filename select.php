@@ -100,7 +100,7 @@ if ($status == false) {
     </a>
     <a class="navbar-brand" href="index3.php"><i class="fas fa-plus-circle"></i>悩み登録</a>
     <a class="navbar-brand" href="index2.php"><i class="fas fa-database"></i>データ登録</a>
-    <a class="navbar-brand" href="gpt.html"><i class="fas fa-search"></i>AI書籍検索</a>
+    <a class="navbar-brand" href="gpt.php"><i class="fas fa-search"></i>AI書籍検索</a>
     <a class="navbar-brand" href="user_edit.php"><i class="fa fa-pen"></i>ユーザー情報編集</a>
     <a class="navbar-brand" href="logout.php"><i class="fas fa-sign-out-alt"></i>ログアウト</a>
   </div>
