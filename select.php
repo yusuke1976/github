@@ -1,5 +1,4 @@
 <?php
-//0. SESSION開始！！
 session_start();
 
 include "funcs.php";
@@ -7,7 +6,6 @@ include "funcs.php";
 //１. DB接続します
 $pdo = db_conn();
 
-//LOGINチェック → funcs.phpへ関数化しましょう！
 sschk();
 
 // ユーザーのプロフィール画像を取得
