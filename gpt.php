@@ -17,7 +17,6 @@ $profile_image = $user['profile_image'] ? 'uploads/' . $user['profile_image'] : 
 
 ?>
 
-
 <!DOCTYPE html>
 <html lang="ja">
     <head>
@@ -44,8 +43,8 @@ $profile_image = $user['profile_image'] ? 'uploads/' . $user['profile_image'] : 
             .profile-img {
                 width: 50px;
                 height: 50px;
-                border-radius: 50%;   /* 真円 */
-                object-fit: cover;    /* 枠に合わせて切り取る */
+                border-radius: 50%;
+                object-fit: cover;
             }
 
             .navbar {
@@ -65,7 +64,7 @@ $profile_image = $user['profile_image'] ? 'uploads/' . $user['profile_image'] : 
             }
 
             .container {
-                max-width: 1500px;
+                max-width: 1100px;
             }
             textarea {
                 width:100%;
@@ -74,14 +73,41 @@ $profile_image = $user['profile_image'] ? 'uploads/' . $user['profile_image'] : 
             #outputText{
                 width: 100%;
                 height: 100%;
+                background-color: #f8f9fa;
+                border: 1px solid #ced4da;
+                border-radius: 0.25rem;
+                padding: 15px;
+                margin-top: 15px;
+                white-space: pre-wrap;
+                word-wrap: break-word;
+                font-size: 1rem;
+                line-height: 1.5;
+                text-align: left;
+            }
+
+            .input-group {
+                width: 100%;
+                max-width: 800px;
+                margin: 0 auto;
+            }
+
+            #formText {
+                flex-grow: 1;
             }
 
             @media (max-width: 768px) {
-            .container {
-                padding-left: 20px;
-                padding-right: 20px;
+                .container {
+                    padding-left: 20px;
+                    padding-right: 20px;
+                }
+                .input-group {
+                    flex-direction: column;
+                }
+                #formText, #btn, #resetBtn {
+                    width: 100%;
+                    margin-bottom: 10px;
+                }
             }
-        }
         </style>
     </head>
     <body>
@@ -99,34 +125,31 @@ $profile_image = $user['profile_image'] ? 'uploads/' . $user['profile_image'] : 
     
         <main>
             <section class="py-5 text-center container">
-                    <div class="col-lg-6 col-md-5 mx-auto py-2">
-                        <h1 class="mb-3 fw-medium">本で悩み解決サービス</h1>
-                                    
-                            <div>
-                                <textarea
-                                id="inputText"
-                                class="mt-3"
-                                placeholder="ここに悩みを入力してください"
-                                ></textarea>
-                                <button class="mt-3" onclick="submitPrompt()">悩みを入力したらクリック</button>
-                                <div id="outputText" class="mt-3 mb-3"></div>
-                            </div>
-
-                            <div class="input-group">
-                                <input type="text" id="formText" name="myFormText" class="form-control" placeholder="キーワード（本のタイトルや内容、著者等）を入力" aria-label="books" aria-describedby="btn">
-                                <button id="btn" class="btn btn-primary"><i class="fas fa-search"></i>検索</button>
-                                <button id="resetBtn" class="btn btn-secondary"><i class="fas fa-undo"></i>リセット</button>
-                            </div>                            
+                <div class="col-lg-8 col-md-10 mx-auto py-2">
+                    <h1 class="mb-3 fw-medium">本で悩み解決サービス</h1>
                     
+                    <div>
+                        <textarea
+                        id="inputText"
+                        class="mt-3"
+                        placeholder="ここに悩みを入力してください"
+                        ></textarea>
+                        <button class="mt-3 btn btn-primary" onclick="submitPrompt()">悩みを入力したらクリック</button>
+                        <div id="outputText" class="mt-3 mb-3"></div>
                     </div>
+
+                    <div class="input-group mt-4">
+                        <input type="text" id="formText" name="myFormText" class="form-control" placeholder="キーワード（本のタイトルや内容、著者等）を入力" aria-label="books" aria-describedby="btn">
+                        <button id="btn" class="btn btn-primary"><i class="fas fa-search"></i>検索</button>
+                        <button id="resetBtn" class="btn btn-secondary"><i class="fas fa-undo"></i>リセット</button>
+                    </div>                            
+                </div>
             </section>
 
             <div id="bookItem" class="container">
                 <div class="row row-cols-1 row-cols-md-3 g-4"></div>
             </div>
-
         </main>
-
     </body>
     <script src="gpt.js"></script>
 </html>
