@@ -49,11 +49,11 @@ async function submitPrompt() {
     }
 }
 
+
 const btn = document.getElementById("btn");
 const formText = document.getElementById("formText");
 const resetBtn = document.getElementById("resetBtn");
 const bookItemRow = document.querySelector("#bookItem .row");
-const outputText = document.getElementById("outputText");
 
 btn.addEventListener('click', async() => {
     // フォームに入力されたテキストの取得
@@ -64,6 +64,7 @@ btn.addEventListener('click', async() => {
     const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${textValue}`);
     const data = await res.json();
 
+    // const bookItemRow = document.querySelector("#bookItem .row");
     bookItemRow.innerHTML = '';
 
     for(let i = 0; i < data.items.length; i++){
@@ -100,21 +101,13 @@ btn.addEventListener('click', async() => {
 
     // 検索後に入力フォームの値をクリアする
     formText.value = '';
-});
+
+  });
 
 // リセットボタンのイベントリスナーを追加
 resetBtn.addEventListener('click', () => {
-    // 検索フォームをクリア
-    formText.value = '';
-    
+
     // 検索結果をクリア
     bookItemRow.innerHTML = '';
-    
-    // AIの出力もクリア
-    outputText.textContent = '';
-    
-    // 入力された悩みもクリア
-    document.getElementById("inputText").value = "";
-    
-    console.log('Reset button clicked. All content cleared.');
+
 });

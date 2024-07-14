@@ -113,9 +113,9 @@ $profile_image = $user['profile_image'] ? 'uploads/' . $user['profile_image'] : 
                             </div>
 
                             <div class="input-group">
-                                <input type="text" id="formText" name="myFormText" class="form-control" placeholder="キーワード（本のタイトル、著者等）を入力" aria-label="books" aria-describedby="btn">
+                                <input type="text" id="formText" name="myFormText" class="form-control" placeholder="キーワード（本のタイトルや内容、著者等）を入力" aria-label="books" aria-describedby="btn">
                                 <button id="btn" class="btn btn-primary"><i class="fas fa-search"></i>検索</button>
-                                <button class="btn btn-secondary" type="button" id="resetSearch"><i class="fas fa-undo"></i>リセット</button>
+                                <button id="resetBtn" class="btn btn-secondary"><i class="fas fa-undo"></i>リセット</button>
                             </div>                            
                     
                     </div>
@@ -126,14 +126,6 @@ $profile_image = $user['profile_image'] ? 'uploads/' . $user['profile_image'] : 
             </div>
 
         </main>
-
-    <!-- 検索リセット用のJavaScript -->
-    <script>
-    document.getElementById('resetSearch').addEventListener('click', function() {
-        document.getElementById('searchInput').value = '';
-        document.getElementById('searchForm').submit();
-    });
-    </script>
 
     </body>
     <script src="gpt.js"></script>
