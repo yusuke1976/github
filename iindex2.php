@@ -133,9 +133,8 @@ $profile_image = $user['profile_image'] ? 'uploads/' . $user['profile_image'] : 
             <?=$_SESSION["username"]?>さんの悩み、解決します！
             </a>
             <a class="navbar-brand" href="select.php"><i class="fa fa-table"></i>登録データ一覧</a>
-            <a class="navbar-brand barcode-search" href="./bar/index.html" target="_blank"><i class="fas fa-barcode"></i> バーコード検索</a>
+            <a class="navbar-brand barcode-search" href="./bar/index5.html" target="_blank" onclick="openBarcodeScanner()"><i class="fas fa-barcode"></i> バーコード検索</a>
             <a class="navbar-brand" href="logout.php"><i class="fas fa-sign-out-alt"></i>ログアウト</a>
-        </div>
         </div>
     </nav>
 
@@ -155,11 +154,11 @@ $profile_image = $user['profile_image'] ? 'uploads/' . $user['profile_image'] : 
                             </div>
                             <div class="form-group">
                                 <label for="book">書籍名</label>
-                                <input type="text" class="form-control" id="book" name="book" placeholder="バーコード検索(スマホ推奨)は上のリンク!">
+                                <input type="text" class="form-control" id="book" name="book" placeholder="(スマホ推奨)バーコード検索は上のリンク!">
                             </div>
                             <div class="form-group">
                                 <label for="url">書籍URL</label>
-                                <input type="text" class="form-control" id="url" name="url" placeholder="バーコード検索(スマホ推奨)は上のリンク!">
+                                <input type="text" class="form-control" id="url" name="url">
                             </div>
                             <div class="form-group">
                                 <label for="coment">コメント</label>
@@ -176,6 +175,18 @@ $profile_image = $user['profile_image'] ? 'uploads/' . $user['profile_image'] : 
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+        function openBarcodeScanner() {
+            window.open('./bar/index.html', 'BarcodeScanner', 'width=600,height=400');
+        }
+
+        window.addEventListener('message', function(event) {
+            if (event.data.type === 'BARCODE_RESULT') {
+                document.getElementById('book').value = event.data.book;
+            }
+        }, false);
+    </script>
 </body>
 
 </html>
