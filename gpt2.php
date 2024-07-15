@@ -17,6 +17,7 @@ $profile_image = $user['profile_image'] ? 'uploads/' . $user['profile_image'] : 
 
 ?>
 
+
 <!DOCTYPE html>
 <html lang="ja">
     <head>
@@ -25,29 +26,16 @@ $profile_image = $user['profile_image'] ? 'uploads/' . $user['profile_image'] : 
         <meta name="description" content="">
         <title>AI書籍検索</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
-        <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-        <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;700&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css" rel="stylesheet">
 
         <meta name="theme-color" content="#7952b3">
         <style>
             body {
-                background-image: url('./img/background4.jpg');
-                background-size: cover;
-                background-position: center;
-                background-attachment: fixed;
+                background-color: #f8f9fa;
                 font-family: 'Noto Sans JP', sans-serif;
                 font-size: 16px;
-            }
-
-            h1{
-                color: #FFF;
-                text-shadow: 
-                    0 0 0.05em #F06292,
-                    0 0 0.10em #F06292,
-                    0 0 0.15em #F06292,
-                    0 0 0.30em #F06292;
-                filter: saturate(80%);
+                color: #333;
             }
 
             .profile-img {
@@ -55,11 +43,13 @@ $profile_image = $user['profile_image'] ? 'uploads/' . $user['profile_image'] : 
                 height: 50px;
                 border-radius: 50%;
                 object-fit: cover;
+                border: 2px solid #fff;
             }
 
             .navbar {
                 background-color: #6c5ce7;
                 padding: 15px 15px;
+                box-shadow: 0 2px 4px rgba(0,0,0,.1);
             }
             
             .navbar-brand {
@@ -67,33 +57,49 @@ $profile_image = $user['profile_image'] ? 'uploads/' . $user['profile_image'] : 
                 font-weight: 350;
                 font-size: 1.2rem;
                 margin-left: 10px; 
+                transition: all 0.3s ease;
             }
 
             .navbar-brand:hover {
-                text-decoration: underline;
+                text-decoration: none;
+                opacity: 0.8;
             }
 
             .container {
                 max-width: 1200px;
             }
-            textarea {
-                width:100%;
-                height:100px;
+
+            h1 {
+                font-family: 'Playfair Display', serif;
+                color: #2c3e50;
             }
+
+            textarea, #formText {
+                width: 100%;
+                border: none;
+                border-radius: 8px;
+                padding: 15px;
+                background-color: #fff;
+                box-shadow: 0 2px 10px rgba(0,0,0,.1);
+                transition: all 0.3s ease;
+            }
+
+            textarea:focus, #formText:focus {
+                outline: none;
+                box-shadow: 0 2px 15px rgba(108,92,231,.2);
+            }
+
             #outputText{
                 width: 100%;
-                height: 100%;
-                background-color: #f8f9fa;
-                border: 1px solid #ced4da;
-                border-radius: 0.25rem;
-                padding: 15px;
-                margin-top: 15px;
-                white-space: pre-wrap;
-                word-wrap: break-word;
+                background-color: #fff;
+                border: none;
+                border-radius: 8px;
+                padding: 20px;
+                margin-top: 20px;
                 font-size: 1rem;
-                line-height: 1.5;
-                text-align: left;
-                display: none; /* 初期状態で非表示 */
+                line-height: 1.6;
+                box-shadow: 0 2px 10px rgba(0,0,0,.1);
+                display: none;
             }
 
             .btn {
@@ -125,17 +131,6 @@ $profile_image = $user['profile_image'] ? 'uploads/' . $user['profile_image'] : 
                 border-color: #7f8c8d;
             }
 
-            .input-group {
-                width: 100%;
-                max-width: 1000px;
-                margin: 0 auto;
-            }
-
-            #formText {
-                flex-grow: 1;
-                height: 48px; /* ボタンの高さに合わせる */
-            }
-
             @media (max-width: 768px) {
                 .container {
                     padding-left: 20px;
@@ -154,42 +149,45 @@ $profile_image = $user['profile_image'] ? 'uploads/' . $user['profile_image'] : 
     <body>
         <nav class="navbar navbar-expand-lg navbar-dark mb-4">
             <div class="container">
-                <a>
-                <img src="<?= $profile_image ?>" alt="Profile Image" class="profile-img">
-                &thinsp;
-                <?=$_SESSION["username"]?>さんの悩み、解決します！
+                <a class="navbar-brand">
+                    <img src="<?= $profile_image ?>" alt="Profile Image" class="profile-img">
+                    &thinsp;
+                    <?=$_SESSION["username"]?>さんの悩み、解決します！
                 </a>
-                <a class="navbar-brand" href="select.php"><i class="fa fa-table"></i>登録データ一覧</a>
-                <a class="navbar-brand" href="logout.php"><i class="fas fa-sign-out-alt"></i>ログアウト</a>
+                <div>
+                    <a class="navbar-brand" href="select.php"><i class="fa fa-table"></i> 登録データ一覧</a>
+                    <a class="navbar-brand" href="logout.php"><i class="fas fa-sign-out-alt"></i> ログアウト</a>
+                </div>
             </div>
         </nav>    
     
         <main>
-            <section class="text-center container">
-                <div class="col-lg-8 col-md-10 mx-auto">
-                    <h1 class="mb-3 fw-medium">書籍検索</h1>
+            <section class="py-5 text-center container">
+                <div class="col-lg-8 col-md-10 mx-auto py-2">
+                    <h1 class="mb-4 fw-bold">本で悩み解決サービス</h1>
                     
-                    <div>
+                    <div class="mb-4">
                         <textarea
                         id="inputText"
-                        class="mt-3 mb-3"
-                        placeholder="ここに悩みを入力してください。AIがあなたにおすすめの本をご紹介します。"
+                        class="mb-3"
+                        placeholder="ここに悩みを入力してください"
+                        rows="4"
                         ></textarea>
                         <button class="btn btn-primary btn-lg" onclick="submitPrompt()">
                             <i class="fas fa-magic mr-2"></i> AI選書！悩みを解決
                         </button>
-                        <div id="outputText" class="mt-3 mb-3"></div>
+                        <div id="outputText" class="mt-4"></div>
                     </div>
 
-                    <div class="input-group mt-4">
+                    <div class="input-group mt-5">
                         <input type="text" id="formText" name="myFormText" class="form-control" placeholder="キーワード（本のタイトルや内容、著者等）を入力" aria-label="books" aria-describedby="btn">
-                        <button id="btn" class="btn btn-primary"><i class="fas fa-search"></i>検索</button>
-                        <button id="resetBtn" class="btn btn-secondary"><i class="fas fa-undo"></i>リセット</button>
+                        <button id="btn" class="btn btn-primary"><i class="fas fa-search"></i> 検索</button>
+                        <button id="resetBtn" class="btn btn-secondary"><i class="fas fa-undo"></i> リセット</button>
                     </div>                            
                 </div>
             </section>
 
-            <div id="bookItem" class="container">
+            <div id="bookItem" class="container mt-5">
                 <div class="row row-cols-1 row-cols-md-3 g-4"></div>
             </div>
         </main>
