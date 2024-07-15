@@ -2,9 +2,9 @@ async function submitPrompt() {
     const prompt = document.getElementById("inputText").value;
     const outputElement = document.getElementById("outputText");
     try {
-      const URL = "https://api.openai.com/v1/chat/completions";
-      const KEY = "secret";
-      const systemPrompt = `
+        const URL = "https://api.openai.com/v1/chat/completions";
+        const KEY = "";
+        const systemPrompt = `
             あなたは悩み解決のための本を優しく紹介するガイドです。
             以下の制約条件を厳密に守ってロールプレイを行ってください。
 
@@ -20,32 +20,33 @@ async function submitPrompt() {
             ・少なくとも3冊は本を紹介します。
             ・プログラミングスクールの学生が卒業制作に悩んでいる場合、『ブルーピリオド』などを紹介します。
             ・インターネットで似た悩みを調査し、その悩みを解決した本を紹介します。
+            ・紹介する本は、箇条書きで表示して。
             `
-      
-      const response = await fetch(URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${KEY}`,
-        },
-        body: JSON.stringify({
-          model: "gpt-3.5-turbo",
-          messages: [{ role: "system", content:systemPrompt},
-                     { role: "user", content: prompt }],
-        }),
-      });
+        
+        const response = await fetch(URL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${KEY}`,
+            },
+            body: JSON.stringify({
+                model: "gpt-3.5-turbo",
+                messages: [{ role: "system", content: systemPrompt },
+                           { role: "user", content: prompt }],
+            }),
+        });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
-      outputElement.textContent = data.choices[0].message.content; // APIの応答に応じて適切なパスを選択
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        outputElement.textContent = data.choices[0].message.content;
+        outputElement.style.display = 'block';  // 回答を表示
 
-      // テキストエリアの値をクリアする
-      document.getElementById("inputText").value = "";
+        document.getElementById("inputText").value = "";
 
     } catch (e) {
-      outputElement.textContent = "Error: " + e.message;
+        outputElement.textContent = "Error: " + e.message;
     }
 }
 
@@ -56,65 +57,108 @@ const bookItemRow = document.querySelector("#bookItem .row");
 const outputText = document.getElementById("outputText");
 
 btn.addEventListener('click', async() => {
-    // フォームに入力されたテキストの取得
     const textValue = formText.value;
-    if (!textValue) return; // 入力がない場合は処理を中断
+    if (!textValue) return;
 
-    // 書籍検索ができるGoogle Books APIのエンドポイントにフォームから取得したテキストを埋め込む
     const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${textValue}`);
     const data = await res.json();
 
     bookItemRow.innerHTML = '';
 
     for(let i = 0; i < data.items.length; i++){
-        // 例外が起きなければtryブロック内のコードが実行される
-        try{
-            // JSONデータの取得
-            // 画像を表示するリンク
-            const bookImg = data.items[i].volumeInfo.imageLinks.smallThumbnail;
-            // 本のタイトル
+        try {
+            const bookImg = data.items[i].volumeInfo.imageLinks?.thumbnail || 'path/to/default/book-image.jpg';
             const bookTitle = data.items[i].volumeInfo.title;
-            // 本の説明文
-            const bookContent = data.items[i].volumeInfo.description;
-            // 各書籍のGoogle Booksへのリンク
+            const bookAuthor = data.items[i].volumeInfo.authors ? data.items[i].volumeInfo.authors.join(', ') : '著者不明';
+            const bookContent = data.items[i].volumeInfo.description || '説明なし';
             const bookLink = data.items[i].volumeInfo.infoLink;
             
             const bookCard = `
-                <div class="col">
-                    <div class="card h-100">
-                        <img src="${bookImg}" class="card-img-top" alt="${bookTitle}">
-                        <div class="card-body">
-                            <h5 class="card-title"><a href="${bookLink}" target="_blank">${bookTitle}</a></h5>
-                            <p class="card-text">${bookContent}</p>
+                <div class="col-12 col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100 shadow book-card">
+                        <div class="card-img-top-wrapper">
+                            <img src="${bookImg}" class="card-img-top" alt="${bookTitle}">
+                        </div>
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title">${bookTitle}</h5>
+                            <p class="card-text text-muted mb-2">${bookAuthor}</p>
+                            <p class="card-text book-description">${bookContent.substring(0, 150)}${bookContent.length > 150 ? '...' : ''}</p>
+                            <a href="${bookLink}" target="_blank" class="btn btn-outline-primary mt-auto">詳細を見る</a>
                         </div>
                     </div>
                 </div>
             `;
             
             bookItemRow.insertAdjacentHTML('beforeend', bookCard);
-        
-        }catch(e){
+        } catch(e) {
+            console.error('Error creating book card:', e);
             continue;
-        };
-    };
+        }
+    }
 
-    // 検索後に入力フォームの値をクリアする
     formText.value = '';
 });
 
-// リセットボタンのイベントリスナーを追加
 resetBtn.addEventListener('click', () => {
-    // 検索フォームをクリア
     formText.value = '';
-    
-    // 検索結果をクリア
     bookItemRow.innerHTML = '';
-    
-    // AIの出力もクリア
     outputText.textContent = '';
-    
-    // 入力された悩みもクリア
+    outputText.style.display = 'none';  // 回答欄を非表示に
     document.getElementById("inputText").value = "";
-    
     console.log('Reset button clicked. All content cleared.');
 });
+
+// スタイルを動的に追加
+const style = document.createElement('style');
+style.textContent = `
+    #bookItem {
+        max-width: 1100px;
+        margin: 0 auto;
+    }
+    .book-card {
+        transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+        border: none;
+        border-radius: 10px;
+    }
+    .book-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.2) !important;
+    }
+    .card-img-top-wrapper {
+        height: 200px;
+        overflow: hidden;
+        border-top-left-radius: 10px;
+        border-top-right-radius: 10px;
+    }
+    .card-img-top {
+        object-fit: cover;
+        height: 100%;
+        width: 100%;
+        transition: transform 0.3s ease-in-out;
+    }
+    .book-card:hover .card-img-top {
+        transform: scale(1.05);
+    }
+    .book-description {
+        font-size: 0.9rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+    }
+    .card-body {
+        background-color: #f8f9fa;
+        border-bottom-left-radius: 10px;
+        border-bottom-right-radius: 10px;
+    }
+    .btn-outline-primary {
+        border-radius: 20px;
+        transition: all 0.3s ease-in-out;
+    }
+    .btn-outline-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 10px rgba(0,123,255,0.2);
+    }
+`;
+document.head.appendChild(style);
