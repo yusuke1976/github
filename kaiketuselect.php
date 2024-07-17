@@ -19,13 +19,22 @@ $profile_image = $user['profile_image'] ? 'uploads/' . $user['profile_image'] : 
 $search_keyword = isset($_GET['search']) ? $_GET['search'] : '';
 
 // 「助かった」ボタンが押された場合の処理
-$helpful_message = '';
 if(isset($_POST['helpful'])) {
-    $book_id = $_POST['book_id'];
-    $stmt = $pdo->prepare("UPDATE gs_bm_table SET helpful_count = helpful_count + 1 WHERE id = :id");
-    $stmt->bindValue(':id', $book_id, PDO::PARAM_INT);
-    $stmt->execute();
-    $helpful_message = '悩み解決！';
+  $book_id = $_POST['book_id'];
+  $stmt = $pdo->prepare("UPDATE gs_bm_table SET helpful_count = helpful_count + 1 WHERE id = :id");
+  $stmt->bindValue(':id', $book_id, PDO::PARAM_INT);
+  if($stmt->execute()) {
+      // 更新後のhelpful_countを取得
+      $stmt = $pdo->prepare("SELECT helpful_count FROM gs_bm_table WHERE id = :id");
+      $stmt->bindValue(':id', $book_id, PDO::PARAM_INT);
+      $stmt->execute();
+      $result = $stmt->fetch(PDO::FETCH_ASSOC);
+      echo json_encode(['success' => true, 'newCount' => $result['helpful_count']]);
+      exit;
+  } else {
+      echo json_encode(['success' => false]);
+      exit;
+  }
 }
 
 //２．データ取得SQL作成
@@ -55,11 +64,9 @@ if ($status == false) {
         $view .= '<p class="card-text"><strong>コメント：</strong>' . h($result['coment']) . '</p>';
         $view .= '<a href="' . h($result['url']) . '" class="btn btn-primary btn-block mb-2" target="_blank">詳細を見る</a>';
 
-        // 「助かった」ボタンを追加
-        $view .= '<form method="post" action="">';
-        $view .= '<input type="hidden" name="book_id" value="' . h($result['id']) . '">';
-        $view .= '<button type="submit" name="helpful" class="btn btn-helpful btn-block mb-2">助かった！ (' . h($result['helpful_count']) . ')</button>';
-        $view .= '</form>';
+        // 「助かった」ボタンとメッセージを追加
+        $view .= '<div id="helpfulMessage_' . h($result['id']) . '" class="alert alert-success mb-2" style="display:none;">悩み解決！</div>';
+        $view .= '<button class="btn btn-helpful btn-block mb-2 helpful-button" data-id="' . h($result['id']) . '">助かった！ (<span class="helpful-count">' . h($result['helpful_count']) . '</span>)</button>';
 
         if ($result['username'] === $_SESSION['username'] || $_SESSION['username'] === 'admin') {
             $view .= '<div class="d-flex justify-content-between">';
@@ -159,7 +166,7 @@ if ($status == false) {
   <?= $view ?>
 </div>
 
-<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
 
@@ -168,6 +175,33 @@ if ($status == false) {
 document.getElementById('resetSearch').addEventListener('click', function() {
     document.getElementById('searchInput').value = '';
     document.getElementById('searchForm').submit();
+});
+
+// 助かったボタンのAjax処理
+$(document).ready(function() {
+    $('.helpful-button').on('click', function(e) {
+        e.preventDefault();
+        var button = $(this);
+        var id = button.data('id');
+        $.ajax({
+            url: 'update_helpful.php',
+            type: 'POST',
+            data: { helpful: true, book_id: id },
+            dataType: 'json',
+            success: function(response) {
+                if(response.success) {
+                    var countElement = button.find('.helpful-count');
+                    countElement.text(response.newCount);
+                    $('#helpfulMessage_' + id).fadeIn().delay(2000).fadeOut();
+                } else {
+                    alert('エラーが発生しました。');
+                }
+            },
+            error: function() {
+                alert('通信エラーが発生しました。');
+            }
+        });
+    });
 });
 </script>
 
