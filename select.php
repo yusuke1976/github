@@ -65,9 +65,12 @@ if ($status == false) {
         $view .= '<a href="' . h($result['url']) . '" class="btn btn-primary btn-block mb-2" target="_blank">詳細を見る</a>';
 
         // 「助かりました」ボタンとメッセージを追加
+        $voted_users = explode(',', $result['voted_users']);
+        $isVoted = in_array($_SESSION['username'], $voted_users);
+
         $view .= '<div id="helpfulMessage_' . h($result['id']) . '" class="alert alert-success mb-2 text-center" style="display:none;">投票ありがとう！</div>';
-        $view .= '<button class="btn btn-helpful btn-block mb-2 helpful-button" data-id="' . h($result['id']) . '">';
-        $view .= '<i class="far fa-heart mr-2"></i>助かりました <span class="helpful-count">' . h($result['helpful_count']) . '</span>';
+        $view .= '<button class="btn btn-helpful btn-block mb-2 helpful-button' . ($isVoted ? ' voted' : '') . '" data-id="' . h($result['id']) . '"' . ($isVoted ? ' disabled' : '') . '>';
+        $view .= '<i class="' . ($isVoted ? 'fas' : 'far') . ' fa-heart mr-2"></i>助かりました <span class="helpful-count">' . h($result['helpful_count']) . '</span>';
         $view .= '</button>';
 
         if ($result['username'] === $_SESSION['username'] || $_SESSION['username'] === 'admin') {
@@ -80,6 +83,7 @@ if ($status == false) {
     }
     $view .= '</div>';
 }
+
 ?>
 
 <!DOCTYPE html>
@@ -215,15 +219,17 @@ $(document).ready(function() {
         $.ajax({
             url: 'update_helpful.php',
             type: 'POST',
-            data: { helpful: true, book_id: id },
+            data: { helpful: true, book_id: id, username: '<?php echo $_SESSION['username']; ?>' },
             dataType: 'json',
             success: function(response) {
                 if(response.success) {
                     var countElement = button.find('.helpful-count');
                     countElement.text(response.newCount);
                     $('#helpfulMessage_' + id).fadeIn().delay(400).fadeOut();
+                    button.prop('disabled', true).addClass('voted');
+                    button.find('i').removeClass('far').addClass('fas');
                 } else {
-                    alert('エラーが発生しました。');
+                    alert(response.message || 'エラーが発生しました。');
                 }
             },
             error: function() {
