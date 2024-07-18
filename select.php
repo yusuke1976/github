@@ -15,8 +15,16 @@ $stmt->execute();
 $user = $stmt->fetch(PDO::FETCH_ASSOC);
 $profile_image = $user['profile_image'] ? 'uploads/' . $user['profile_image'] : 'path/to/default/image.jpg';
 
-// 検索キーワードを取得
+// ユーザーのジャンルを取得
+$stmt = $pdo->prepare("SELECT genre FROM gs_user_table5 WHERE username = :username");
+$stmt->bindValue(':username', $_SESSION['username'], PDO::PARAM_STR);
+$stmt->execute();
+$user = $stmt->fetch(PDO::FETCH_ASSOC);
+$user_genre = $user['genre'];
+
+// 検索キーワードとフィルターオプションを取得
 $search_keyword = isset($_GET['search']) ? $_GET['search'] : '';
+$filter_different_genre = isset($_GET['filter_different_genre']) ? $_GET['filter_different_genre'] : false;
 
 // 「助かりました」ボタンが押された場合の処理
 if(isset($_POST['helpful'])) {
@@ -37,12 +45,23 @@ if(isset($_POST['helpful'])) {
   }
 }
 
-//２．データ取得SQL作成
+// データ取得SQL作成
+$sql = "SELECT b.*, u.genre FROM gs_bm_table b JOIN gs_user_table5 u ON b.username = u.username WHERE 1=1";
+$params = array();
+
 if (!empty($search_keyword)) {
-    $stmt = $pdo->prepare("SELECT * FROM gs_bm_table WHERE book LIKE :keyword OR worry LIKE :keyword OR coment LIKE :keyword OR username LIKE :keyword");
-    $stmt->bindValue(':keyword', '%'.$search_keyword.'%', PDO::PARAM_STR);
-} else {
-    $stmt = $pdo->prepare("SELECT * FROM gs_bm_table");
+    $sql .= " AND (b.book LIKE :keyword OR b.worry LIKE :keyword OR b.coment LIKE :keyword OR b.username LIKE :keyword)";
+    $params[':keyword'] = '%'.$search_keyword.'%';
+}
+
+if ($filter_different_genre) {
+    $sql .= " AND u.genre != :user_genre";
+    $params[':user_genre'] = $user_genre;
+}
+
+$stmt = $pdo->prepare($sql);
+foreach ($params as $key => $value) {
+    $stmt->bindValue($key, $value, PDO::PARAM_STR);
 }
 $status = $stmt->execute();
 
@@ -186,13 +205,19 @@ if ($status == false) {
   <?php endif; ?>
 
   <!-- 検索フォーム -->
-  <form action="" method="GET" class="mb-4"  id="searchForm">
+  <form action="" method="GET" class="mb-4" id="searchForm">
     <div class="input-group">
       <input type="text" class="form-control" placeholder="キーワードを入力" name="search" id="searchInput" value="<?= h($search_keyword) ?>">
       <div class="input-group-append">
         <button class="btn btn-warning" type="submit"><i class="fas fa-search"></i>検索</button>
         <button class="btn btn-secondary" type="button" id="resetSearch"><i class="fas fa-undo"></i>リセット</button>
       </div>
+    </div>
+    <div class="form-check mt-2">
+      <input class="form-check-input" type="checkbox" id="filterDifferentGenre" name="filter_different_genre" value="1" <?= $filter_different_genre ? 'checked' : '' ?>>
+      <label class="form-check-label" for="filterDifferentGenre">
+        自分と違うジャンルの投稿のみ表示
+      </label>
     </div>
   </form>
 
@@ -207,6 +232,7 @@ if ($status == false) {
 <script>
 document.getElementById('resetSearch').addEventListener('click', function() {
     document.getElementById('searchInput').value = '';
+    document.getElementById('filterDifferentGenre').checked = false;
     document.getElementById('searchForm').submit();
 });
 
