@@ -39,7 +39,7 @@ if(isset($_POST['helpful'])) {
 
 //２．データ取得SQL作成
 if (!empty($search_keyword)) {
-    $stmt = $pdo->prepare("SELECT * FROM gs_bm_table WHERE book LIKE :keyword OR worry LIKE :keyword OR coment LIKE :keyword");
+    $stmt = $pdo->prepare("SELECT * FROM gs_bm_table WHERE book LIKE :keyword OR worry LIKE :keyword OR coment LIKE :keyword OR username LIKE :keyword");
     $stmt->bindValue(':keyword', '%'.$search_keyword.'%', PDO::PARAM_STR);
 } else {
     $stmt = $pdo->prepare("SELECT * FROM gs_bm_table");
