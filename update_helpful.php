@@ -8,6 +8,7 @@ if(isset($_POST['helpful']) && isset($_POST['username'])) {
     $pdo = db_conn();
     $book_id = $_POST['book_id'];
     $username = $_POST['username'];
+    $helpful = $_POST['helpful'] === 'true';
 
     // トランザクション開始
     $pdo->beginTransaction();
@@ -20,24 +21,35 @@ if(isset($_POST['helpful']) && isset($_POST['username'])) {
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
 
         $voted_users = $result['voted_users'] ? explode(',', $result['voted_users']) : [];
+        $helpful_count = $result['helpful_count'];
 
-        if (!in_array($username, $voted_users)) {
+        if ($helpful && !in_array($username, $voted_users)) {
             // 新しい投票を追加
             $voted_users[] = $username;
-            $new_voted_users = implode(',', $voted_users);
-
-            $stmt = $pdo->prepare("UPDATE gs_bm_table SET helpful_count = helpful_count + 1, voted_users = :voted_users WHERE id = :id");
-            $stmt->bindValue(':voted_users', $new_voted_users, PDO::PARAM_STR);
-            $stmt->bindValue(':id', $book_id, PDO::PARAM_INT);
-            $stmt->execute();
-
-            $pdo->commit();
-
-            echo json_encode(['success' => true, 'newCount' => $result['helpful_count'] + 1]);
+            $helpful_count++;
+            $message = '投票ありがとうございます！';
+        } elseif (!$helpful && in_array($username, $voted_users)) {
+            // 投票をキャンセル
+            $voted_users = array_diff($voted_users, [$username]);
+            $helpful_count--;
+            $message = '投票をキャンセルしました。';
         } else {
-            // 既に投票済み
-            echo json_encode(['success' => false, 'message' => '既に投票済みです。']);
+            // 不正な操作
+            echo json_encode(['success' => false, 'message' => '不正な操作です。']);
+            exit;
         }
+
+        $new_voted_users = implode(',', $voted_users);
+
+        $stmt = $pdo->prepare("UPDATE gs_bm_table SET helpful_count = :helpful_count, voted_users = :voted_users WHERE id = :id");
+        $stmt->bindValue(':helpful_count', $helpful_count, PDO::PARAM_INT);
+        $stmt->bindValue(':voted_users', $new_voted_users, PDO::PARAM_STR);
+        $stmt->bindValue(':id', $book_id, PDO::PARAM_INT);
+        $stmt->execute();
+
+        $pdo->commit();
+
+        echo json_encode(['success' => true, 'newCount' => $helpful_count, 'message' => $message]);
     } catch (Exception $e) {
         $pdo->rollBack();
         echo json_encode(['success' => false, 'message' => '処理中にエラーが発生しました。']);

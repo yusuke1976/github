@@ -69,8 +69,8 @@ if ($status == false) {
         $isVoted = in_array($_SESSION['username'], $voted_users);
 
         $view .= '<div id="helpfulMessage_' . h($result['id']) . '" class="alert alert-success mb-2 text-center" style="display:none;">投票ありがとう！</div>';
-        $view .= '<button class="btn btn-helpful btn-block mb-2 helpful-button' . ($isVoted ? ' voted' : '') . '" data-id="' . h($result['id']) . '"' . ($isVoted ? ' disabled' : '') . '>';
-        $view .= '<i class="' . ($isVoted ? 'fas' : 'far') . ' fa-heart mr-2"></i>助かりました <span class="helpful-count">' . h($result['helpful_count']) . '</span>';
+        $view .= '<button class="btn btn-helpful btn-block mb-2 helpful-button' . ($isVoted ? ' voted' : '') . '" data-id="' . h($result['id']) . '">';
+        $view .= '<i class="' . ($isVoted ? 'fas' : 'far') . ' fa-heart mr-2"></i><span class="button-text">' . ($isVoted ? 'キャンセル' : '助かりました') . '</span> <span class="helpful-count">' . h($result['helpful_count']) . '</span>';
         $view .= '</button>';
 
         if ($result['username'] === $_SESSION['username'] || $_SESSION['username'] === 'admin') {
@@ -216,18 +216,31 @@ $(document).ready(function() {
         e.preventDefault();
         var button = $(this);
         var id = button.data('id');
+        var isVoted = button.hasClass('voted');
         $.ajax({
             url: 'update_helpful.php',
             type: 'POST',
-            data: { helpful: true, book_id: id, username: '<?php echo $_SESSION['username']; ?>' },
+            data: { 
+                helpful: !isVoted, 
+                book_id: id, 
+                username: '<?php echo $_SESSION['username']; ?>' 
+            },
             dataType: 'json',
             success: function(response) {
                 if(response.success) {
                     var countElement = button.find('.helpful-count');
                     countElement.text(response.newCount);
-                    $('#helpfulMessage_' + id).fadeIn().delay(400).fadeOut();
-                    button.prop('disabled', true).addClass('voted');
-                    button.find('i').removeClass('far').addClass('fas');
+                    $('#helpfulMessage_' + id).text(response.message).fadeIn().delay(400).fadeOut();
+                    button.toggleClass('voted');
+                    var icon = button.find('i');
+                    var buttonText = button.find('.button-text');
+                    if (isVoted) {
+                        icon.removeClass('fas').addClass('far');
+                        buttonText.text('助かりました');
+                    } else {
+                        icon.removeClass('far').addClass('fas');
+                        buttonText.text('キャンセル');
+                    }
                 } else {
                     alert(response.message || 'エラーが発生しました。');
                 }
