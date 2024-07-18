@@ -176,6 +176,36 @@ if ($status == false) {
         border-color: #FF69B4;
         color: #fff;
     }
+
+    .filter-container {
+        display: flex;
+        align-items: center;
+        margin-top: 15px;
+    }
+
+    .filter-checkbox {
+        transform: scale(2);
+        margin-right: 15px;
+    }
+
+    .filter-label {
+        font-size: 1.1em;
+        font-weight: bold;
+        color: #007bff;
+        background-color: #f8f9fa;
+        padding: 5px 15px;
+        border-radius: 5px;
+        border: 2px solid #007bff;
+        display: flex;
+        align-items: center;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .filter-label:hover {
+        background-color: #007bff;
+        color: #fff;
+    }
 </style>
 </head>
 <body>
@@ -205,21 +235,21 @@ if ($status == false) {
   <?php endif; ?>
 
   <!-- 検索フォーム -->
-  <form action="" method="GET" class="mb-4" id="searchForm">
+<form action="" method="GET" class="mb-4" id="searchForm">
     <div class="input-group">
-      <input type="text" class="form-control" placeholder="キーワードを入力" name="search" id="searchInput" value="<?= h($search_keyword) ?>">
-      <div class="input-group-append">
-        <button class="btn btn-warning" type="submit"><i class="fas fa-search"></i>検索</button>
-        <button class="btn btn-secondary" type="button" id="resetSearch"><i class="fas fa-undo"></i>リセット</button>
-      </div>
+        <input type="text" class="form-control" placeholder="キーワードを入力" name="search" id="searchInput" value="<?= h($search_keyword) ?>">
+        <div class="input-group-append">
+            <button class="btn btn-warning" type="submit"><i class="fas fa-search"></i>検索</button>
+            <button class="btn btn-secondary" type="button" id="resetSearch"><i class="fas fa-undo"></i>リセット</button>
+        </div>
     </div>
-    <div class="form-check mt-2">
-      <input class="form-check-input" type="checkbox" id="filterDifferentGenre" name="filter_different_genre" value="1" <?= $filter_different_genre ? 'checked' : '' ?>>
-      <label class="form-check-label" for="filterDifferentGenre">
-        自分と違うジャンルの投稿のみ表示
-      </label>
+    <div class="filter-container">
+        <input class="filter-checkbox" type="checkbox" id="filterDifferentGenre" name="filter_different_genre" value="1" <?= $filter_different_genre ? 'checked' : '' ?>>
+        <label class="filter-label" for="filterDifferentGenre">
+            <i class="fas fa-filter mr-2"></i> 自分と違うジャンルの投稿のみ表示
+        </label>
     </div>
-  </form>
+</form>
 
   <?= $view ?>
 </div>
