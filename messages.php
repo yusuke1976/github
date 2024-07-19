@@ -7,6 +7,14 @@ sschk();
 
 $username = $_SESSION['username'];
 
+// ユーザーのプロフィール画像を取得
+$stmt = $pdo->prepare("SELECT profile_image FROM gs_user_table5 WHERE username = :username");
+$stmt->bindValue(':username', $_SESSION['username'], PDO::PARAM_STR);
+$stmt->execute();
+$user = $stmt->fetch(PDO::FETCH_ASSOC);
+$profile_image = $user['profile_image'] ? 'uploads/' . $user['profile_image'] : 'path/to/default/image.jpg';
+
+
 // 受信したメッセージを取得
 $stmt = $pdo->prepare("SELECT * FROM gs_messages_table WHERE receiver_username = :username ORDER BY created_at DESC");
 $stmt->bindValue(':username', $username, PDO::PARAM_STR);
@@ -27,18 +35,54 @@ $sent_messages = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>メッセージ</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css" rel="stylesheet">
     <style>
-        body { padding-top: 60px; }
-        .message { margin-bottom: 20px; padding: 10px; border-radius: 5px; }
+        body {
+            background-image: url('./img/background.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            font-family: 'Noto Sans JP', sans-serif;
+            font-size: 16px;
+        }
+
+        .profile-img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;   /* 真円 */
+            object-fit: cover;    /* 枠に合わせて切り取る */
+        }
+
+        .navbar {
+            background-color: #ff9800;
+            padding: 15px 15px;
+        }
+        
+        .navbar-brand {
+            color: #ffffff !important;
+            font-weight: 350;
+            font-size: 1.2rem;
+            margin-left: 10px; 
+        }
+
+        .navbar-brand:hover {
+            text-decoration: underline;
+        }        .message { margin-bottom: 20px; padding: 10px; border-radius: 5px; }
         .received { background-color: #f0f0f0; }
         .sent { background-color: #e6f3ff; text-align: right; }
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark mb-4">
         <div class="container">
-            <a class="navbar-brand" href="select.php">ホーム</a>
+            <a>
+            <img src="<?= $profile_image ?>" alt="Profile Image" class="profile-img">
+            &thinsp;
+            <?=$_SESSION["username"]?>さんの悩み、解決します！
+            </a>
+            <a class="navbar-brand" href="select.php"><i class="fa fa-table"></i>登録データ一覧</a>
+            <a class="navbar-brand" href="logout.php"><i class="fas fa-sign-out-alt"></i>ログアウト</a>
         </div>
     </nav>
 
