@@ -82,6 +82,7 @@ if ($status == false) {
         $view .= '<p class="card-text"><strong>悩み：</strong>' . h($result['worry']) . '</p>';
         $view .= '<p class="card-text"><strong>コメント：</strong>' . h($result['coment']) . '</p>';
         $view .= '<a href="' . h($result['url']) . '" class="btn btn-primary btn-block mb-2" target="_blank">詳細を見る</a>';
+        $view .= '<button class="btn btn-info btn-block mb-2 send-message-btn" data-username="' . h($result['username']) . '">メッセージを送る</button>';
 
         // 「助かりました」ボタンとメッセージを追加
         $voted_users = explode(',', $result['voted_users']);
@@ -252,6 +253,34 @@ if ($status == false) {
 </form>
 
   <?= $view ?>
+
+</div>
+
+<!-- メッセージ送信用モーダル -->
+<div class="modal fade" id="messageModal" tabindex="-1" role="dialog" aria-labelledby="messageModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="messageModalLabel">メッセージを送信</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="messageForm">
+          <input type="hidden" id="receiverUsername" name="receiverUsername">
+          <div class="form-group">
+            <label for="messageText">メッセージ:</label>
+            <textarea class="form-control" id="messageText" name="messageText" rows="3" required></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">閉じる</button>
+        <button type="button" class="btn btn-primary" id="sendMessageBtn">送信</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
@@ -305,6 +334,43 @@ $(document).ready(function() {
                 alert('通信エラーが発生しました。');
             }
         });
+    });
+});
+</script>
+
+<script>
+// メッセージ送信ボタンのクリックイベント
+$(document).on('click', '.send-message-btn', function() {
+    var receiverUsername = $(this).data('username');
+    $('#receiverUsername').val(receiverUsername);
+    $('#messageModal').modal('show');
+});
+
+// メッセージ送信処理
+$('#sendMessageBtn').on('click', function() {
+    var receiverUsername = $('#receiverUsername').val();
+    var messageText = $('#messageText').val();
+
+    $.ajax({
+        url: 'send_message.php',
+        type: 'POST',
+        data: {
+            receiverUsername: receiverUsername,
+            messageText: messageText
+        },
+        dataType: 'json',
+        success: function(response) {
+            if (response.success) {
+                alert(response.message);
+                $('#messageModal').modal('hide');
+                $('#messageText').val('');
+            } else {
+                alert('エラー: ' + response.message);
+            }
+        },
+        error: function() {
+            alert('通信エラーが発生しました。');
+        }
     });
 });
 </script>
