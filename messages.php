@@ -68,10 +68,52 @@ $sent_messages = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         .navbar-brand:hover {
             text-decoration: underline;
-        }        .message { margin-bottom: 20px; padding: 10px; border-radius: 5px; }
-        .received { background-color: #f0f0f0; }
-        .sent { background-color: #e6f3ff; text-align: right; }
-    </style>
+        }        
+        .message-container {
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .received {
+            background-color: #e8f5e9;
+            border-top-left-radius: 0;
+        }
+
+        .sent {
+            background-color: #e3f2fd;
+            border-top-right-radius: 0;
+            text-align: right;
+        }
+
+        .message strong {
+            font-size: 0.9em;
+            color: #555;
+        }
+
+        .message p {
+            margin: 10px 0;
+        }
+
+        .message small {
+            font-size: 0.8em;
+            color: #888;
+        }
+
+        h2, h3 {
+            color: #000;
+            border-bottom: 2px solid #000;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }    </style>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark mb-4">
@@ -89,23 +131,27 @@ $sent_messages = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <div class="container">
         <h2 class="mb-4">メッセージ</h2>
 
-        <h3>受信したメッセージ</h3>
-        <?php foreach ($received_messages as $message): ?>
-            <div class="message received">
-                <strong>From: <?= h($message['sender_username']) ?></strong>
-                <p><?= h($message['message']) ?></p>
-                <small><?= h($message['created_at']) ?></small>
-            </div>
-        <?php endforeach; ?>
+        <div class="message-container">
+            <h3>受信したメッセージ</h3>
+            <?php foreach ($received_messages as $message): ?>
+                <div class="message received">
+                    <strong><i class="fas fa-user-circle"></i> From: <?= h($message['sender_username']) ?></strong>
+                    <p><?= h($message['message']) ?></p>
+                    <small><i class="far fa-clock"></i> <?= h($message['created_at']) ?></small>
+                </div>
+            <?php endforeach; ?>
+        </div>
 
-        <h3 class="mt-5">送信したメッセージ</h3>
-        <?php foreach ($sent_messages as $message): ?>
-            <div class="message sent">
-                <strong>To: <?= h($message['receiver_username']) ?></strong>
-                <p><?= h($message['message']) ?></p>
-                <small><?= h($message['created_at']) ?></small>
-            </div>
-        <?php endforeach; ?>
+        <div class="message-container">
+            <h3>送信したメッセージ</h3>
+            <?php foreach ($sent_messages as $message): ?>
+                <div class="message sent">
+                    <strong><i class="fas fa-user-circle"></i> To: <?= h($message['receiver_username']) ?></strong>
+                    <p><?= h($message['message']) ?></p>
+                    <small><i class="far fa-clock"></i> <?= h($message['created_at']) ?></small>
+                </div>
+            <?php endforeach; ?>
+        </div>
     </div>
 
     <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
