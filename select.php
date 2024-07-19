@@ -81,8 +81,8 @@ if ($status == false) {
         $view .= '<p class="card-text"><strong>投稿者：</strong>' . h($result['username']) . '</p>';
         $view .= '<p class="card-text"><strong>悩み：</strong>' . h($result['worry']) . '</p>';
         $view .= '<p class="card-text"><strong>コメント：</strong>' . h($result['coment']) . '</p>';
-        $view .= '<a href="' . h($result['url']) . '" class="btn btn-primary btn-block mb-2" target="_blank">詳細を見る</a>';
-        $view .= '<button class="btn btn-info btn-block mb-2 send-message-btn" data-username="' . h($result['username']) . '">メッセージを送る</button>';
+        $view .= '<a href="' . h($result['url']) . '" class="btn btn-primary btn-block mb-2" target="_blank"><i class="fas fa-external-link-alt"></i> 詳細を見る</a>';
+        $view .= '<button class="btn btn-info btn-block mb-2 send-message-btn" data-username="' . h($result['username']) . '"><i class="far fa-comment-alt"></i> メッセージを送る</button>';
 
         // 「助かりました」ボタンとメッセージを追加
         $voted_users = explode(',', $result['voted_users']);
