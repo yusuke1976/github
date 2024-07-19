@@ -7,6 +7,15 @@ sschk();
 
 $username = $_SESSION['username'];
 
+// メッセージ削除処理
+if (isset($_POST['delete_message'])) {
+    $message_id = $_POST['message_id'];
+    $stmt = $pdo->prepare("DELETE FROM gs_messages_table WHERE id = :id AND sender_username = :username");
+    $stmt->bindValue(':id', $message_id, PDO::PARAM_INT);
+    $stmt->bindValue(':username', $username, PDO::PARAM_STR);
+    $stmt->execute();
+}
+
 // ユーザーのプロフィール画像を取得
 $stmt = $pdo->prepare("SELECT profile_image FROM gs_user_table5 WHERE username = :username");
 $stmt->bindValue(':username', $_SESSION['username'], PDO::PARAM_STR);
@@ -135,7 +144,20 @@ $sent_messages = $stmt->fetchAll(PDO::FETCH_ASSOC);
             border-bottom: 2px solid #000;
             padding-bottom: 10px;
             margin-bottom: 20px;
-        }    
+        }
+        
+        .delete-btn {
+            background-color: #ff4444;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.8em;
+        }
+        .delete-btn:hover {
+            background-color: #cc0000;
+        }
     </style>
 </head>
 <body>
@@ -177,6 +199,10 @@ $sent_messages = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <strong> To: <?= h($message['receiver_username']) ?></strong>
                         <p><?= h($message['message']) ?></p>
                         <small><i class="far fa-clock"></i> <?= h($message['created_at']) ?></small>
+                        <form method="POST" style="display: inline;">
+                            <input type="hidden" name="message_id" value="<?= $message['id'] ?>">
+                            <button type="submit" name="delete_message" class="delete-btn">削除</button>
+                        </form>
                     </div>
                 </div>
             <?php endforeach; ?>
