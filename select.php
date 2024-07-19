@@ -82,7 +82,7 @@ if ($status == false) {
         $view .= '<p class="card-text"><strong>悩み：</strong>' . h($result['worry']) . '</p>';
         $view .= '<p class="card-text"><strong>コメント：</strong>' . h($result['coment']) . '</p>';
         $view .= '<a href="' . h($result['url']) . '" class="btn btn-primary btn-block mb-2" target="_blank"><i class="fas fa-external-link-alt"></i> 詳細を見る</a>';
-        $view .= '<button class="btn btn-info btn-block mb-2 send-message-btn" data-username="' . h($result['username']) . '"><i class="far fa-comment-alt"></i> メッセージを送る</button>';
+        $view .= '<button class="btn btn-info btn-block mb-2 send-message-btn" data-username="' . h($result['username']) . '"><i class="far fa-envelope"></i> メッセージを送る</button>';
 
         // 「助かりました」ボタンとメッセージを追加
         $voted_users = explode(',', $result['voted_users']);
@@ -207,22 +207,47 @@ if ($status == false) {
         background-color: #007bff;
         color: #fff;
     }
+
+    .user-welcome{
+        font-size: 1rem;
+    }
 </style>
 </head>
 <body>
-<nav class="navbar navbar-expand-lg navbar-dark mb-4">
+<nav class="navbar navbar-expand-lg navbar-dark bg-gradient-primary">
   <div class="container">
-    <a>
-    <img src="<?= $profile_image ?>" alt="Profile Image" class="profile-img">
-    &thinsp;
-    <?=$_SESSION["username"]?>さんの悩み、解決します！
+    <a class="navbar-brand d-flex align-items-center">
+      <img src="<?= $profile_image ?>" alt="Profile Image" class="profile-img mr-2">
+      <span class="user-welcome text-dark">
+        <?=$_SESSION["username"]?>さん<br>
+        の悩み、解決します！
+      </span>
     </a>
-    <a class="navbar-brand" href="index3.php"><i class="fas fa-plus-circle"></i>悩み登録</a>
-    <a class="navbar-brand" href="index2.php"><i class="fas fa-database"></i>データ登録</a>
-    <a class="navbar-brand" href="gpt.php"><i class="fas fa-search"></i>AI書籍検索</a>
-    <a class="navbar-brand" href="user_edit.php"><i class="fa fa-pen"></i>ユーザー情報編集</a>
-    <a class="navbar-brand" href="messages.php"><i class="far fa-envelope"></i> メッセージ</a>
-    <a class="navbar-brand" href="logout.php"><i class="fas fa-sign-out-alt"></i>ログアウト</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ml-auto">
+        <li class="nav-item">
+          <a class="nav-link text-white" href="index3.php"><i class="fas fa-plus-circle"></i> 悩み登録</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link text-white" href="index2.php"><i class="fas fa-database"></i> データ登録</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link text-white" href="gpt.php"><i class="fas fa-search"></i> AI書籍検索</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link text-white" href="user_edit.php"><i class="fa fa-pen"></i> ユーザー情報編集</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link text-white" href="messages.php"><i class="far fa-envelope"></i> メッセージ</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link text-white" href="logout.php"><i class="fas fa-sign-out-alt"></i> ログアウト</a>
+        </li>
+      </ul>
+    </div>
   </div>
 </nav>
 
