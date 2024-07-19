@@ -14,15 +14,18 @@ $stmt->execute();
 $user = $stmt->fetch(PDO::FETCH_ASSOC);
 $profile_image = $user['profile_image'] ? 'uploads/' . $user['profile_image'] : 'path/to/default/image.jpg';
 
-
-// 受信したメッセージを取得
-$stmt = $pdo->prepare("SELECT * FROM gs_messages_table WHERE receiver_username = :username ORDER BY created_at DESC");
+// 受信したメッセージを取得（送信者のプロフィール画像も含める）
+$stmt = $pdo->prepare("SELECT m.*, u.profile_image FROM gs_messages_table m 
+                       JOIN gs_user_table5 u ON m.sender_username = u.username 
+                       WHERE m.receiver_username = :username ORDER BY m.created_at DESC");
 $stmt->bindValue(':username', $username, PDO::PARAM_STR);
 $stmt->execute();
 $received_messages = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// 送信したメッセージを取得
-$stmt = $pdo->prepare("SELECT * FROM gs_messages_table WHERE sender_username = :username ORDER BY created_at DESC");
+// 送信したメッセージを取得（受信者のプロフィール画像も含める）
+$stmt = $pdo->prepare("SELECT m.*, u.profile_image FROM gs_messages_table m 
+                       JOIN gs_user_table5 u ON m.receiver_username = u.username 
+                       WHERE m.sender_username = :username ORDER BY m.created_at DESC");
 $stmt->bindValue(':username', $username, PDO::PARAM_STR);
 $stmt->execute();
 $sent_messages = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -77,21 +80,40 @@ $sent_messages = $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
 
         .message {
+            display: flex;
+            align-items: flex-start;
             margin-bottom: 15px;
+        }
+
+        .message-content {
+            flex-grow: 1;
             padding: 15px;
             border-radius: 10px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
 
-        .received {
+        .received .message-content {
             background-color: #e8f5e9;
             border-top-left-radius: 0;
+            margin-left: 10px;
+        }
+
+        .sent .message-content {
+            background-color: #e3f2fd;
+            border-top-right-radius: 0;
+            margin-right: 10px;
         }
 
         .sent {
-            background-color: #e3f2fd;
-            border-top-right-radius: 0;
+            flex-direction: row-reverse;
             text-align: right;
+        }
+
+        .message-img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
         }
 
         .message strong {
@@ -113,7 +135,8 @@ $sent_messages = $stmt->fetchAll(PDO::FETCH_ASSOC);
             border-bottom: 2px solid #000;
             padding-bottom: 10px;
             margin-bottom: 20px;
-        }    </style>
+        }    
+    </style>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark mb-4">
@@ -135,9 +158,12 @@ $sent_messages = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <h3>受信したメッセージ</h3>
             <?php foreach ($received_messages as $message): ?>
                 <div class="message received">
-                    <strong><i class="fas fa-user-circle"></i> From: <?= h($message['sender_username']) ?></strong>
-                    <p><?= h($message['message']) ?></p>
-                    <small><i class="far fa-clock"></i> <?= h($message['created_at']) ?></small>
+                    <img src="<?= $message['profile_image'] ? 'uploads/' . $message['profile_image'] : 'path/to/default/image.jpg' ?>" alt="Profile" class="message-img">
+                    <div class="message-content">
+                        <strong> From: <?= h($message['sender_username']) ?></strong>
+                        <p><?= h($message['message']) ?></p>
+                        <small><i class="far fa-clock"></i> <?= h($message['created_at']) ?></small>
+                    </div>
                 </div>
             <?php endforeach; ?>
         </div>
@@ -146,9 +172,12 @@ $sent_messages = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <h3>送信したメッセージ</h3>
             <?php foreach ($sent_messages as $message): ?>
                 <div class="message sent">
-                    <strong><i class="fas fa-user-circle"></i> To: <?= h($message['receiver_username']) ?></strong>
-                    <p><?= h($message['message']) ?></p>
-                    <small><i class="far fa-clock"></i> <?= h($message['created_at']) ?></small>
+                    <img src="<?= $message['profile_image'] ? 'uploads/' . $message['profile_image'] : 'path/to/default/image.jpg' ?>" alt="Profile" class="message-img">
+                    <div class="message-content">
+                        <strong> To: <?= h($message['receiver_username']) ?></strong>
+                        <p><?= h($message['message']) ?></p>
+                        <small><i class="far fa-clock"></i> <?= h($message['created_at']) ?></small>
+                    </div>
                 </div>
             <?php endforeach; ?>
         </div>
