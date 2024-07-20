@@ -129,6 +129,10 @@ $status = $stmt->execute();
             </div>
             <div class="card-body">
                 <p class="card-text"><?=$result["worry"]?></p>
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-primary" onclick="commentWorry(<?=$result['id']?>)">コメントする</button>
+                    <button type="button" class="btn btn-success" onclick="solveWorry(<?=$result['id']?>)">解決本を提案</button>
+                </div>
             </div>
         </div>
         <?php
@@ -140,5 +144,18 @@ $status = $stmt->execute();
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+        function commentWorry(id) {
+            alert('悩み ' + id + ' にコメントします');
+            // ここにコメント機能の実装を追加
+        }
+
+        function solveWorry(id) {
+            alert('悩み ' + id + ' に解決策を提案します');
+            // ここに解決策提案機能の実装を追加
+        }
+    </script>
+
 </body>
 </html>
