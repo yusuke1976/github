@@ -12,8 +12,13 @@ $stmt->execute();
 $user = $stmt->fetch(PDO::FETCH_ASSOC);
 $profile_image = $user['profile_image'] ? 'uploads/' . $user['profile_image'] : 'path/to/default/image.jpg';
 
-// 悩みデータ取得
-$stmt = $pdo->prepare("SELECT * FROM gs_worry ORDER BY date DESC");
+// 悩みデータ取得（投稿者のプロフィール画像も含める）
+$stmt = $pdo->prepare("
+    SELECT gs_worry.*, gs_user_table5.profile_image 
+    FROM gs_worry 
+    LEFT JOIN gs_user_table5 ON gs_worry.username = gs_user_table5.username 
+    ORDER BY gs_worry.date DESC
+");
 $status = $stmt->execute();
 
 ?>
@@ -82,6 +87,15 @@ $status = $stmt->execute();
         .card-body {
             padding: 20px;
         }
+
+        .poster-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .poster-info img {
+            margin-right: 10px;
+        }
     </style>
 </head>
 <body>
@@ -104,10 +118,14 @@ $status = $stmt->execute();
             sql_error($stmt);
         } else {
             while( $result = $stmt->fetch(PDO::FETCH_ASSOC)){ 
+                $poster_image = $result['profile_image'] ? 'uploads/' . $result['profile_image'] : 'path/to/default/image.jpg';
         ?>
         <div class="card">
             <div class="card-header">
-                投稿者: <?=$result["username"]?> | 日時: <?=$result["date"]?>
+                <div class="poster-info">
+                    <img src="<?= $poster_image ?>" alt="Poster Profile Image" class="profile-img">
+                    <span>投稿者: <?=$result["username"]?> | 日時: <?=$result["date"]?></span>
+                </div>
             </div>
             <div class="card-body">
                 <p class="card-text"><?=$result["worry"]?></p>
