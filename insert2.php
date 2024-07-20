@@ -20,7 +20,7 @@ sschk();
 
 //３．データ登録SQL作成
 $stmt = $pdo->prepare('INSERT INTO
-                gs_bm_table( username, id, worry, date )
+                gs_worry( username, id, worry, date )
                 VALUES( :username, NULL, :worry, now() ) ');
 
 //  2. バインド変数を用意
