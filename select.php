@@ -232,6 +232,9 @@ if ($status == false) {
           <a class="nav-link text-white" href="index3.php"><i class="fas fa-plus-circle"></i> 悩み登録</a>
         </li>
         <li class="nav-item">
+          <a class="nav-link text-white" href="index10.php"><i class="fas fa-list-ul"></i> 悩み一覧</a>
+        </li>
+        <li class="nav-item">
           <a class="nav-link text-white" href="index2.php"><i class="fas fa-database"></i> データ登録</a>
         </li>
         <li class="nav-item">
