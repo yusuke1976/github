@@ -12,6 +12,31 @@ $stmt->execute();
 $user = $stmt->fetch(PDO::FETCH_ASSOC);
 $profile_image = $user['profile_image'] ? 'uploads/' . $user['profile_image'] : 'path/to/default/image.jpg';
 
+// Ajaxリクエストの処理
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'add_comment') {
+    $worry_id = $_POST['worry_id'];
+    $comment = $_POST['comment'];
+    $username = $_SESSION['username'];
+
+    $stmt = $pdo->prepare("INSERT INTO gs_worry_comments (worry_id, username, comment) VALUES (:worry_id, :username, :comment)");
+    $stmt->bindValue(':worry_id', $worry_id, PDO::PARAM_INT);
+    $stmt->bindValue(':username', $username, PDO::PARAM_STR);
+    $stmt->bindValue(':comment', $comment, PDO::PARAM_STR);
+    $stmt->execute();
+
+    $comment_id = $pdo->lastInsertId();
+    $created_at = date('Y-m-d H:i:s');
+
+    // 新しいコメントのHTMLを返す
+    echo json_encode([
+        'id' => $comment_id,
+        'username' => $username,
+        'comment' => $comment,
+        'created_at' => $created_at
+    ]);
+    exit;
+}
+
 // 悩みデータ取得（投稿者のプロフィール画像も含める）
 $stmt = $pdo->prepare("
     SELECT gs_worry.*, gs_user_table5.profile_image 
@@ -20,6 +45,19 @@ $stmt = $pdo->prepare("
     ORDER BY gs_worry.date DESC
 ");
 $status = $stmt->execute();
+
+// // コメントを追加する処理
+// if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comment'])) {
+//     $worry_id = $_POST['worry_id'];
+//     $comment = $_POST['comment'];
+//     $username = $_SESSION['username'];
+
+//     $stmt = $pdo->prepare("INSERT INTO gs_worry_comments (worry_id, username, comment) VALUES (:worry_id, :username, :comment)");
+//     $stmt->bindValue(':worry_id', $worry_id, PDO::PARAM_INT);
+//     $stmt->bindValue(':username', $username, PDO::PARAM_STR);
+//     $stmt->bindValue(':comment', $comment, PDO::PARAM_STR);
+//     $stmt->execute();
+// }
 
 ?>
 
@@ -96,6 +134,18 @@ $status = $stmt->execute();
         .poster-info img {
             margin-right: 10px;
         }
+
+        .comment-section {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e0e0e0;
+        }
+        .comment {
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
@@ -130,8 +180,28 @@ $status = $stmt->execute();
             <div class="card-body">
                 <p class="card-text"><?=$result["worry"]?></p>
                 <div class="btn-group" role="group">
-                    <button type="button" class="btn btn-primary" onclick="commentWorry(<?=$result['id']?>)">コメントする</button>
+                    <button type="button" class="btn btn-primary" onclick="showCommentForm(<?=$result['id']?>)">コメントする</button>
                     <button type="button" class="btn btn-success" onclick="solveWorry(<?=$result['id']?>)">解決本を提案</button>
+                </div>
+                <div id="commentForm<?=$result['id']?>" style="display:none; margin-top: 15px;">
+                    <form onsubmit="return addComment(<?=$result['id']?>)">
+                        <textarea id="commentText<?=$result['id']?>" class="form-control" rows="3" required></textarea>
+                        <button type="submit" class="btn btn-primary mt-2">コメントを投稿</button>
+                    </form>
+                </div>
+                <div id="commentSection<?=$result['id']?>" class="comment-section">
+                    <?php
+                    $comment_stmt = $pdo->prepare("SELECT * FROM gs_worry_comments WHERE worry_id = :worry_id ORDER BY created_at DESC");
+                    $comment_stmt->bindValue(':worry_id', $result['id'], PDO::PARAM_INT);
+                    $comment_stmt->execute();
+                    while ($comment = $comment_stmt->fetch(PDO::FETCH_ASSOC)) {
+                    ?>
+                    <div class="comment">
+                        <strong><?=$comment['username']?>:</strong> <?=$comment['comment']?>
+                    </div>
+                    <?php
+                    }
+                    ?>
                 </div>
             </div>
         </div>
@@ -141,14 +211,44 @@ $status = $stmt->execute();
         ?>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
     <script>
-        function commentWorry(id) {
-            alert('悩み ' + id + ' にコメントします');
-            // ここにコメント機能の実装を追加
+        function showCommentForm(id) {
+            var form = document.getElementById('commentForm' + id);
+            form.style.display = form.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function addComment(worryId) {
+            var commentText = document.getElementById('commentText' + worryId).value;
+            
+            $.ajax({
+                url: 'index10.php',
+                method: 'POST',
+                data: {
+                    action: 'add_comment',
+                    worry_id: worryId,
+                    comment: commentText
+                },
+                dataType: 'json',
+                success: function(response) {
+                    var commentSection = document.getElementById('commentSection' + worryId);
+                    var newComment = document.createElement('div');
+                    newComment.className = 'comment';
+                    newComment.innerHTML = '<strong>' + response.username + ':</strong> ' + response.comment;
+                    commentSection.insertBefore(newComment, commentSection.firstChild);
+                    
+                    document.getElementById('commentText' + worryId).value = '';
+                    showCommentForm(worryId);
+                },
+                error: function(xhr, status, error) {
+                    console.error('エラー:', error);
+                }
+            });
+
+            return false;  // フォームのデフォルトの送信を防ぐ
         }
 
         function solveWorry(id) {
