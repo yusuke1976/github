@@ -132,8 +132,9 @@ $profile_image = $user['profile_image'] ? 'uploads/' . $user['profile_image'] : 
             &thinsp;
             <?=$_SESSION["username"]?>さんの悩み、解決します！
             </a>
-            <a class="navbar-brand" href="select.php"><i class="fa fa-table"></i>登録データ一覧</a>
-            <a class="navbar-brand" href="logout.php"><i class="fas fa-sign-out-alt"></i>ログアウト</a>
+            <a class="navbar-brand" href="index10.php"><i class="fas fa-list-ul"></i> 悩み一覧</a>
+            <a class="navbar-brand" href="select.php"><i class="fa fa-table"></i> 登録データ一覧</a>
+            <a class="navbar-brand" href="logout.php"><i class="fas fa-sign-out-alt"></i> ログアウト</a>
         </div>
     </nav>
 

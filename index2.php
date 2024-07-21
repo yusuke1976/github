@@ -15,6 +15,11 @@ $stmt->execute();
 $user = $stmt->fetch(PDO::FETCH_ASSOC);
 $profile_image = $user['profile_image'] ? 'uploads/' . $user['profile_image'] : 'path/to/default/image.jpg';
 
+// URLパラメータから悩みを取得
+$worry = isset($_GET['worry']) ? $_GET['worry'] : '';
+$worry_id = isset($_GET['worry_id']) ? $_GET['worry_id'] : '';
+
+
 ?>
 
 <!DOCTYPE html>
@@ -149,9 +154,10 @@ $profile_image = $user['profile_image'] ? 'uploads/' . $user['profile_image'] : 
                     <div class="card-body">
                         <form method="POST" action="insert.php">
                             <input type="hidden" name="username" value="<?=$_SESSION['username']?>">
+                            <input type="hidden" name="worry_id" value="<?=$worry_id?>">
                             <div class="form-group">
                                 <label for="worry">本で解決したあなたの悩み</label>
-                                <textarea class="form-control" id="worry" name="worry" rows="4" placeholder="ここに悩みを入力してください"></textarea>
+                                <textarea class="form-control" id="worry" name="worry" rows="4" placeholder="ここに悩みを入力してください"><?=htmlspecialchars($worry, ENT_QUOTES)?></textarea>
                             </div>
                             <div class="form-group">
                                 <label for="book">書籍名</label>

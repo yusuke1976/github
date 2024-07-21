@@ -215,7 +215,7 @@ $status = $stmt->execute();
                 <p class="card-text"><?=$result["worry"]?></p>
                 <div class="btn-group" role="group">
                     <button type="button" class="btn btn-primary" onclick="showCommentForm(<?=$result['id']?>)">コメントする</button>
-                    <button type="button" class="btn btn-success" onclick="solveWorry(<?=$result['id']?>)">解決本を提案</button>
+                    <button type="button" class="btn btn-success" onclick="proposeBook(<?=$result['id']?>, '<?=htmlspecialchars($result["worry"], ENT_QUOTES)?>')">解決本を提案</button>
                 </div>
                 <div id="commentForm<?=$result['id']?>" style="display:none; margin-top: 15px;">
                     <form onsubmit="return addComment(<?=$result['id']?>)">
@@ -324,10 +324,9 @@ $status = $stmt->execute();
                 });
             }
         }
-        
-        function solveWorry(id) {
-            alert('悩み ' + id + ' に解決策を提案します');
-            // ここに解決策提案機能の実装を追加
+
+        function proposeBook(id, worry) {
+        window.location.href = 'index2.php?worry_id=' + id + '&worry=' + encodeURIComponent(worry);
         }
     </script>
 
