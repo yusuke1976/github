@@ -46,19 +46,6 @@ $stmt = $pdo->prepare("
 ");
 $status = $stmt->execute();
 
-// // コメントを追加する処理
-// if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['comment'])) {
-//     $worry_id = $_POST['worry_id'];
-//     $comment = $_POST['comment'];
-//     $username = $_SESSION['username'];
-
-//     $stmt = $pdo->prepare("INSERT INTO gs_worry_comments (worry_id, username, comment) VALUES (:worry_id, :username, :comment)");
-//     $stmt->bindValue(':worry_id', $worry_id, PDO::PARAM_INT);
-//     $stmt->bindValue(':username', $username, PDO::PARAM_STR);
-//     $stmt->bindValue(':comment', $comment, PDO::PARAM_STR);
-//     $stmt->execute();
-// }
-
 ?>
 
 <!DOCTYPE html>
@@ -136,15 +123,41 @@ $status = $stmt->execute();
         }
 
         .comment-section {
-            margin-top: 15px;
-            padding-top: 15px;
+            margin-top: 20px;
+            padding-top: 20px;
             border-top: 1px solid #e0e0e0;
         }
         .comment {
-            margin-bottom: 10px;
-            padding: 10px;
+            margin-bottom: 15px;
+            padding: 15px;
             background-color: #f8f9fa;
-            border-radius: 5px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .comment-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .comment-username {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .comment-date {
+            font-size: 0.8em;
+            color: #777;
+        }
+        .comment-content {
+            line-height: 1.6;
+        }
+        .new-comment {
+            animation: fadeIn 0.5s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
@@ -197,7 +210,11 @@ $status = $stmt->execute();
                     while ($comment = $comment_stmt->fetch(PDO::FETCH_ASSOC)) {
                     ?>
                     <div class="comment">
-                        <strong><?=$comment['username']?>:</strong> <?=$comment['comment']?>
+                        <div class="comment-header">
+                            <span class="comment-username"><?=$comment['username']?></span>
+                            <span class="comment-date"><?=date('Y/m/d H:i', strtotime($comment['created_at']))?></span>
+                        </div>
+                        <div class="comment-content"><?=$comment['comment']?></div>
                     </div>
                     <?php
                     }
@@ -236,8 +253,14 @@ $status = $stmt->execute();
                 success: function(response) {
                     var commentSection = document.getElementById('commentSection' + worryId);
                     var newComment = document.createElement('div');
-                    newComment.className = 'comment';
-                    newComment.innerHTML = '<strong>' + response.username + ':</strong> ' + response.comment;
+                    newComment.className = 'comment new-comment';
+                    newComment.innerHTML = `
+                        <div class="comment-header">
+                            <span class="comment-username">${response.username}</span>
+                            <span class="comment-date">${new Date().toLocaleString()}</span>
+                        </div>
+                        <div class="comment-content">${response.comment}</div>
+                    `;
                     commentSection.insertBefore(newComment, commentSection.firstChild);
                     
                     document.getElementById('commentText' + worryId).value = '';
