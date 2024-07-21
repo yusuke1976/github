@@ -35,6 +35,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         'created_at' => $created_at
     ]);
     exit;
+} elseif (isset($_POST['action']) && $_POST['action'] === 'delete_comment') {
+    $comment_id = $_POST['comment_id'];
+    $username = $_SESSION['username'];
+
+    $stmt = $pdo->prepare("DELETE FROM gs_worry_comments WHERE id = :comment_id AND username = :username");
+    $stmt->bindValue(':comment_id', $comment_id, PDO::PARAM_INT);
+    $stmt->bindValue(':username', $username, PDO::PARAM_STR);
+    $result = $stmt->execute();
+
+    if ($result && $stmt->rowCount() > 0) {
+        echo json_encode(['success' => true]);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'コメントの削除に失敗しました。']);
+    }
+    exit;
 }
 
 // 悩みデータ取得（投稿者のプロフィール画像も含める）
@@ -159,6 +174,12 @@ $status = $stmt->execute();
             from { opacity: 0; transform: translateY(-10px); }
             to { opacity: 1; transform: translateY(0); }
         }
+
+        .delete-comment {
+            cursor: pointer;
+            color: #dc3545;
+            margin-left: 10px;
+        }
     </style>
 </head>
 <body>
@@ -209,10 +230,13 @@ $status = $stmt->execute();
                     $comment_stmt->execute();
                     while ($comment = $comment_stmt->fetch(PDO::FETCH_ASSOC)) {
                     ?>
-                    <div class="comment">
+                    <div class="comment" id="comment<?=$comment['id']?>">
                         <div class="comment-header">
                             <span class="comment-username"><?=$comment['username']?></span>
                             <span class="comment-date"><?=date('Y/m/d H:i', strtotime($comment['created_at']))?></span>
+                            <?php if ($comment['username'] === $_SESSION['username']): ?>
+                                <span class="delete-comment" onclick="deleteComment(<?=$comment['id']?>)"><i class="fas fa-trash-alt"></i></span>
+                            <?php endif; ?>
                         </div>
                         <div class="comment-content"><?=$comment['comment']?></div>
                     </div>
@@ -254,10 +278,12 @@ $status = $stmt->execute();
                     var commentSection = document.getElementById('commentSection' + worryId);
                     var newComment = document.createElement('div');
                     newComment.className = 'comment new-comment';
+                    newComment.id = 'comment' + response.id;
                     newComment.innerHTML = `
                         <div class="comment-header">
                             <span class="comment-username">${response.username}</span>
-                            <span class="comment-date">${new Date().toLocaleString()}</span>
+                            <span class="comment-date">${new Date(response.created_at).toLocaleString()}</span>
+                            <span class="delete-comment" onclick="deleteComment(${response.id})"><i class="fas fa-trash-alt"></i></span>
                         </div>
                         <div class="comment-content">${response.comment}</div>
                     `;
@@ -274,6 +300,31 @@ $status = $stmt->execute();
             return false;  // フォームのデフォルトの送信を防ぐ
         }
 
+        function deleteComment(commentId) {
+            if (confirm('このコメントを削除してもよろしいですか？')) {
+                $.ajax({
+                    url: 'index10.php',
+                    method: 'POST',
+                    data: {
+                        action: 'delete_comment',
+                        comment_id: commentId
+                    },
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success) {
+                            $('#comment' + commentId).remove();
+                        } else {
+                            alert(response.message);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('エラー:', error);
+                        alert('コメントの削除中にエラーが発生しました。');
+                    }
+                });
+            }
+        }
+        
         function solveWorry(id) {
             alert('悩み ' + id + ' に解決策を提案します');
             // ここに解決策提案機能の実装を追加
