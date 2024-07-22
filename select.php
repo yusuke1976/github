@@ -212,37 +212,34 @@ if ($status == false) {
         font-size: 1rem;
     }
 
-    .firework {
+    .firework-container {
         position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        width: 0.5vmin;
-        aspect-ratio: 1;
-        background:
-            radial-gradient(circle, #ff0 0.2vmin, #0000 0) 50% 00%,
-            radial-gradient(circle, #ff0 0.3vmin, #0000 0) 00% 50%,
-            radial-gradient(circle, #ff0 0.5vmin, #0000 0) 50% 99%,
-            radial-gradient(circle, #ff0 0.2vmin, #0000 0) 99% 50%,
-            radial-gradient(circle, #ff0 0.3vmin, #0000 0) 80% 90%,
-            radial-gradient(circle, #ff0 0.5vmin, #0000 0) 95% 90%,
-            radial-gradient(circle, #ff0 0.5vmin, #0000 0) 10% 60%,
-            radial-gradient(circle, #ff0 0.2vmin, #0000 0) 31% 80%,
-            radial-gradient(circle, #ff0 0.3vmin, #0000 0) 80% 10%,
-            radial-gradient(circle, #ff0 0.2vmin, #0000 0) 90% 23%,
-            radial-gradient(circle, #ff0 0.3vmin, #0000 0) 45% 20%,
-            radial-gradient(circle, #ff0 0.5vmin, #0000 0) 13% 24%;
-        background-size: 0.5vmin 0.5vmin;
-        background-repeat: no-repeat;
-        animation: firework 1s infinite;
-        opacity: 0;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
         z-index: 9999;
+        overflow: hidden;
     }
 
-    @keyframes firework {
-        0% { transform: translate(-50%, -50%) scale(0); opacity: 1; }
-        100% { transform: translate(-50%, -50%) scale(30); opacity: 0; }
+    .firework {
+        position: absolute;
     }
+
+    .firework-particle {
+        position: absolute;
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        animation: firework-explode 1s ease-out forwards;
+    }
+
+    @keyframes firework-explode {
+        0% { transform: scale(1); opacity: 1; }
+        100% { transform: scale(20); opacity: 0; }
+    }
+
 </style>
 </head>
 <body>
@@ -344,7 +341,7 @@ if ($status == false) {
   </div>
 </div>
 
-<div class="firework" style="display: none;"></div>
+<div class="firework-container" style="display: none;"></div>
 
 <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
@@ -357,6 +354,67 @@ document.getElementById('resetSearch').addEventListener('click', function() {
     document.getElementById('filterDifferentGenre').checked = false;
     document.getElementById('searchForm').submit();
 });
+
+function createFirework(x, y) {
+    const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff', '#ffffff'];
+    const firework = document.createElement('div');
+    firework.className = 'firework';
+    firework.style.left = x + 'px';
+    firework.style.top = y + 'px';
+
+    const particleCount = Math.floor(Math.random() * 80) + 50; // 粒子数を増やしました
+    for (let i = 0; i < particleCount; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'firework-particle';
+        particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        
+        const angle = Math.random() * Math.PI * 2;
+        const velocity = Math.random() * 60 + 30; // 速度範囲を調整しました
+        const tx = Math.cos(angle) * velocity;
+        const ty = Math.sin(angle) * velocity;
+
+        particle.style.left = '0px';
+        particle.style.top = '0px';
+
+        particle.animate([
+            { transform: 'translate(0, 0) scale(1)', opacity: 1 },
+            { transform: `translate(${tx}px, ${ty}px) scale(0)`, opacity: 0 }
+        ], {
+            duration: Math.random() * 1000 + 700, // アニメーション時間を調整しました
+            easing: 'cubic-bezier(0,0,0.25,1)'
+        });
+
+        firework.appendChild(particle);
+    }
+
+    return firework;
+}
+
+function launchFireworks() {
+    const container = document.querySelector('.firework-container');
+    container.style.display = 'block';
+    container.innerHTML = '';  // Clear previous fireworks
+
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+
+    for (let i = 0; i < 8; i++) {  // 花火の数を調整しました
+        setTimeout(() => {
+            const x = Math.random() * width;
+            const y = height - Math.random() * height / 2;  // 打ち上げ位置を調整しました
+            const firework = createFirework(x, y);
+            container.appendChild(firework);
+
+            // Remove the firework element after animation
+            setTimeout(() => firework.remove(), 2000);
+        }, Math.random() * 1500);  // 打ち上げタイミングを調整しました
+    }
+
+    // Hide container after all fireworks are done
+    setTimeout(() => {
+        container.style.display = 'none';
+    }, 3500);
+}
 
 // 助かりましたボタンのAjax処理
 $(document).ready(function() {
@@ -392,13 +450,7 @@ $(document).ready(function() {
                     
                     // 初めての投票の場合、花火アニメーションを表示
                     if (response.isFirstVote) {
-                        $('.firework').show().css('opacity', 1);
-                        setTimeout(function() {
-                            $('.firework').css('opacity', 0);
-                            setTimeout(function() {
-                                $('.firework').hide();
-                            }, 1000);
-                        }, 1000);
+                        launchFireworks();
                     }
                 } else {
                     alert(response.message || 'エラーが発生しました。');
