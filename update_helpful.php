@@ -27,7 +27,7 @@ if(isset($_POST['helpful']) && isset($_POST['username'])) {
             // 新しい投票を追加
             $voted_users[] = $username;
             $helpful_count++;
-            $message = '投票ありがとうございます！';
+            $message = count($voted_users) == 1 ? '初めての投票嬉しいです！' : '投票ありがとうございます！';
         } elseif (!$helpful && in_array($username, $voted_users)) {
             // 投票をキャンセル
             $voted_users = array_diff($voted_users, [$username]);
