@@ -22,12 +22,14 @@ if(isset($_POST['helpful']) && isset($_POST['username'])) {
 
         $voted_users = $result['voted_users'] ? explode(',', $result['voted_users']) : [];
         $helpful_count = $result['helpful_count'];
+        $isFirstVote = false;
 
         if ($helpful && !in_array($username, $voted_users)) {
             // 新しい投票を追加
             $voted_users[] = $username;
             $helpful_count++;
-            $message = count($voted_users) == 1 ? '初めての投票嬉しいです！' : '投票ありがとうございます！';
+            $isFirstVote = count($voted_users) == 1;
+            $message = $isFirstVote ? '初めての投票嬉しいです！' : '投票ありがとうございます！';
         } elseif (!$helpful && in_array($username, $voted_users)) {
             // 投票をキャンセル
             $voted_users = array_diff($voted_users, [$username]);
@@ -49,7 +51,7 @@ if(isset($_POST['helpful']) && isset($_POST['username'])) {
 
         $pdo->commit();
 
-        echo json_encode(['success' => true, 'newCount' => $helpful_count, 'message' => $message]);
+        echo json_encode(['success' => true, 'newCount' => $helpful_count, 'message' => $message, 'isFirstVote' => $isFirstVote]);
     } catch (Exception $e) {
         $pdo->rollBack();
         echo json_encode(['success' => false, 'message' => '処理中にエラーが発生しました。']);

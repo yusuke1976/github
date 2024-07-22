@@ -211,6 +211,38 @@ if ($status == false) {
     .user-welcome{
         font-size: 1rem;
     }
+
+    .firework {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 0.5vmin;
+        aspect-ratio: 1;
+        background:
+            radial-gradient(circle, #ff0 0.2vmin, #0000 0) 50% 00%,
+            radial-gradient(circle, #ff0 0.3vmin, #0000 0) 00% 50%,
+            radial-gradient(circle, #ff0 0.5vmin, #0000 0) 50% 99%,
+            radial-gradient(circle, #ff0 0.2vmin, #0000 0) 99% 50%,
+            radial-gradient(circle, #ff0 0.3vmin, #0000 0) 80% 90%,
+            radial-gradient(circle, #ff0 0.5vmin, #0000 0) 95% 90%,
+            radial-gradient(circle, #ff0 0.5vmin, #0000 0) 10% 60%,
+            radial-gradient(circle, #ff0 0.2vmin, #0000 0) 31% 80%,
+            radial-gradient(circle, #ff0 0.3vmin, #0000 0) 80% 10%,
+            radial-gradient(circle, #ff0 0.2vmin, #0000 0) 90% 23%,
+            radial-gradient(circle, #ff0 0.3vmin, #0000 0) 45% 20%,
+            radial-gradient(circle, #ff0 0.5vmin, #0000 0) 13% 24%;
+        background-size: 0.5vmin 0.5vmin;
+        background-repeat: no-repeat;
+        animation: firework 1s infinite;
+        opacity: 0;
+        z-index: 9999;
+    }
+
+    @keyframes firework {
+        0% { transform: translate(-50%, -50%) scale(0); opacity: 1; }
+        100% { transform: translate(-50%, -50%) scale(30); opacity: 0; }
+    }
 </style>
 </head>
 <body>
@@ -312,6 +344,8 @@ if ($status == false) {
   </div>
 </div>
 
+<div class="firework" style="display: none;"></div>
+
 <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
@@ -354,6 +388,17 @@ $(document).ready(function() {
                     } else {
                         icon.removeClass('far').addClass('fas');
                         buttonText.text('キャンセル');
+                    }
+                    
+                    // 初めての投票の場合、花火アニメーションを表示
+                    if (response.isFirstVote) {
+                        $('.firework').show().css('opacity', 1);
+                        setTimeout(function() {
+                            $('.firework').css('opacity', 0);
+                            setTimeout(function() {
+                                $('.firework').hide();
+                            }, 1000);
+                        }, 1000);
                     }
                 } else {
                     alert(response.message || 'エラーが発生しました。');
