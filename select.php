@@ -305,7 +305,7 @@ if ($status == false) {
     <div class="filter-container">
         <input class="filter-checkbox" type="checkbox" id="filterDifferentGenre" name="filter_different_genre" value="1" <?= $filter_different_genre ? 'checked' : '' ?>>
         <label class="filter-label" for="filterDifferentGenre">
-            <i class="fas fa-filter mr-2"></i> 自分と違うジャンルの投稿のみ表示
+            <i class="fas fa-filter mr-2"></i> 読書歴が違う人の投稿のみ表示
         </label>
     </div>
 </form>

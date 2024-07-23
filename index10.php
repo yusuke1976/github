@@ -50,7 +50,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         echo json_encode(['success' => false, 'message' => 'コメントの削除に失敗しました。']);
     }
     exit;
+} elseif (isset($_POST['action']) && $_POST['action'] === 'increment_proposal_count') {
+    $worry_id = $_POST['worry_id'];
+    
+    $stmt = $pdo->prepare("UPDATE gs_worry SET proposal_count = proposal_count + 1 WHERE id = :worry_id");
+    $stmt->bindValue(':worry_id', $worry_id, PDO::PARAM_INT);
+    $result = $stmt->execute();
+    
+    if ($result) {
+        $stmt = $pdo->prepare("SELECT proposal_count FROM gs_worry WHERE id = :worry_id");
+        $stmt->bindValue(':worry_id', $worry_id, PDO::PARAM_INT);
+        $stmt->execute();
+        $new_count = $stmt->fetchColumn();
+        
+        echo json_encode(['success' => true, 'new_count' => $new_count]);
+    } else {
+        echo json_encode(['success' => false, 'message' => '提案回数の更新に失敗しました。']);
+    }
+    exit;
 }
+
 
 // 悩みデータ取得（投稿者のプロフィール画像も含める）
 $stmt = $pdo->prepare("
@@ -180,6 +199,12 @@ $status = $stmt->execute();
             color: #dc3545;
             margin-left: 10px;
         }
+
+        .proposal-count {
+            font-size: 0.9em;
+            color: #6c757d;
+            margin-left: 10px;
+        }
     </style>
 </head>
 <body>
@@ -212,10 +237,13 @@ $status = $stmt->execute();
                 </div>
             </div>
             <div class="card-body">
-                <p class="card-text"><?=$result["worry"]?></p>
+            <p class="card-text"><?=$result["worry"]?></p>
                 <div class="btn-group" role="group">
                     <button type="button" class="btn btn-primary" onclick="showCommentForm(<?=$result['id']?>)">コメントする</button>
-                    <button type="button" class="btn btn-success" onclick="proposeBook(<?=$result['id']?>, '<?=htmlspecialchars($result["worry"], ENT_QUOTES)?>')">解決本を提案</button>
+                    <button type="button" class="btn btn-success" onclick="proposeBook(<?=$result['id']?>, '<?=htmlspecialchars($result["worry"], ENT_QUOTES)?>')">
+                        解決本を提案
+                        <span id="proposalCount<?=$result['id']?>" class="proposal-count">(<?=$result['proposal_count'] ?? 0?>)</span>
+                    </button>
                 </div>
                 <div id="commentForm<?=$result['id']?>" style="display:none; margin-top: 15px;">
                     <form onsubmit="return addComment(<?=$result['id']?>)">
@@ -326,7 +354,27 @@ $status = $stmt->execute();
         }
 
         function proposeBook(id, worry) {
-        window.location.href = 'index2.php?worry_id=' + id + '&worry=' + encodeURIComponent(worry);
+            $.ajax({
+                url: 'index10.php',
+                method: 'POST',
+                data: {
+                    action: 'increment_proposal_count',
+                    worry_id: id
+                },
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        $('#proposalCount' + id).text('(' + response.new_count + ')');
+                    } else {
+                        console.error('提案回数の更新に失敗しました:', response.message);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('エラー:', error);
+                }
+            });
+
+            window.location.href = 'index2.php?worry_id=' + id + '&worry=' + encodeURIComponent(worry);
         }
     </script>
 
