@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- ホスト: 127.0.0.1
--- 生成日時: 2024-07-24 22:34:09
+-- 生成日時: 2024-07-24 22:33:41
 -- サーバのバージョン： 10.4.32-MariaDB
 -- PHP のバージョン: 8.2.12
 
@@ -24,35 +24,33 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
--- テーブルの構造 `gs_worry`
+-- テーブルの構造 `gs_messages_table`
 --
 
-CREATE TABLE `gs_worry` (
-  `username` varchar(64) NOT NULL,
-  `id` int(12) NOT NULL,
-  `worry` text NOT NULL,
-  `date` datetime NOT NULL,
-  `proposal_count` int(11) DEFAULT 0
+CREATE TABLE `gs_messages_table` (
+  `id` int(11) NOT NULL,
+  `sender_username` varchar(255) NOT NULL,
+  `receiver_username` varchar(255) NOT NULL,
+  `message` text NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- テーブルのデータのダンプ `gs_worry`
+-- テーブルのデータのダンプ `gs_messages_table`
 --
 
-INSERT INTO `gs_worry` (`username`, `id`, `worry`, `date`, `proposal_count`) VALUES
-('test3', 2, 'test3', '2024-07-20 23:48:26', 0),
-('test3', 3, '洋書を読みたいが、何を読んだらいいのかわからない', '2024-07-21 13:49:22', 0),
-('', 4, '', '2024-07-23 08:37:55', 0),
-('', 5, '', '2024-07-23 08:38:39', 1);
+INSERT INTO `gs_messages_table` (`id`, `sender_username`, `receiver_username`, `message`, `created_at`) VALUES
+(1, 'gs_kadai', 'test2', 'ああああ', '2024-07-19 11:39:04'),
+(3, 'gs_kadai', 'test2', 'ううううううう', '2024-07-19 15:04:22');
 
 --
 -- ダンプしたテーブルのインデックス
 --
 
 --
--- テーブルのインデックス `gs_worry`
+-- テーブルのインデックス `gs_messages_table`
 --
-ALTER TABLE `gs_worry`
+ALTER TABLE `gs_messages_table`
   ADD PRIMARY KEY (`id`);
 
 --
@@ -60,10 +58,10 @@ ALTER TABLE `gs_worry`
 --
 
 --
--- テーブルの AUTO_INCREMENT `gs_worry`
+-- テーブルの AUTO_INCREMENT `gs_messages_table`
 --
-ALTER TABLE `gs_worry`
-  MODIFY `id` int(12) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+ALTER TABLE `gs_messages_table`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
