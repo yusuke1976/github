@@ -70,6 +70,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     exit;
 }
 
+// 悩みの削除処理
+if (isset($_POST['action']) && $_POST['action'] === 'delete_worry') {
+    $worry_id = $_POST['worry_id'];
+    $username = $_SESSION['username'];
+
+    $stmt = $pdo->prepare("DELETE FROM gs_worry WHERE id = :worry_id AND username = :username");
+    $stmt->bindValue(':worry_id', $worry_id, PDO::PARAM_INT);
+    $stmt->bindValue(':username', $username, PDO::PARAM_STR);
+    $result = $stmt->execute();
+
+    if ($result && $stmt->rowCount() > 0) {
+        // 関連するコメントも削除
+        $stmt = $pdo->prepare("DELETE FROM gs_worry_comments WHERE worry_id = :worry_id");
+        $stmt->bindValue(':worry_id', $worry_id, PDO::PARAM_INT);
+        $stmt->execute();
+
+        echo json_encode(['success' => true]);
+    } else {
+        echo json_encode(['success' => false, 'message' => '悩みの削除に失敗しました。']);
+    }
+    exit;
+}
+
 
 // 悩みデータ取得（投稿者のプロフィール画像も含める）
 $stmt = $pdo->prepare("
@@ -205,6 +228,22 @@ $status = $stmt->execute();
             color: #6c757d;
             margin-left: 10px;
         }
+
+        .poster-info {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+    }
+
+    .poster-info > div {
+        display: flex;
+        align-items: center;
+    }
+
+    .btn-danger.btn-sm {
+        margin-left: 10px;
+    }
     </style>
 </head>
 <body>
@@ -230,12 +269,17 @@ $status = $stmt->execute();
                 $poster_image = $result['profile_image'] ? 'uploads/' . $result['profile_image'] : 'path/to/default/image.jpg';
         ?>
         <div class="card">
-            <div class="card-header">
-                <div class="poster-info">
+        <div class="card-header">
+            <div class="poster-info d-flex justify-content-between align-items-center">
+                <div>
                     <img src="<?= $poster_image ?>" alt="Poster Profile Image" class="profile-img">
                     <span>投稿者: <?=$result["username"]?> | 日時: <?=$result["date"]?></span>
                 </div>
+                <?php if ($result["username"] === $_SESSION['username']): ?>
+                    <button type="button" class="btn btn-danger btn-sm ml-2" onclick="deleteWorry(<?=$result['id']?>)">削除</button>
+                <?php endif; ?>
             </div>
+        </div>
             <div class="card-body">
             <p class="card-text"><?=$result["worry"]?></p>
                 <div class="btn-group" role="group">
@@ -375,6 +419,32 @@ $status = $stmt->execute();
             });
 
             window.location.href = 'index2.php?worry_id=' + id + '&worry=' + encodeURIComponent(worry);
+        }
+
+        function deleteWorry(worryId) {
+            if (confirm('この悩みを削除してもよろしいですか？関連するコメントもすべて削除されます。')) {
+                $.ajax({
+                    url: 'index10.php',
+                    method: 'POST',
+                    data: {
+                        action: 'delete_worry',
+                        worry_id: worryId
+                    },
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success) {
+                            // 悩みのカードを削除
+                            $('#worryCard' + worryId).remove();
+                        } else {
+                            alert(response.message);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('エラー:', error);
+                        alert('悩みの削除中にエラーが発生しました。');
+                    }
+                });
+            }
         }
     </script>
 
