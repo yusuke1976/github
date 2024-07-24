@@ -434,7 +434,9 @@ $status = $stmt->execute();
                     success: function(response) {
                         if (response.success) {
                             // 悩みのカードを削除
-                            $('#worryCard' + worryId).remove();
+                            $('.card').filter(function() {
+                                return $(this).find('button[onclick^="deleteWorry(' + worryId + ')"]').length > 0;
+                            }).remove();
                         } else {
                             alert(response.message);
                         }
