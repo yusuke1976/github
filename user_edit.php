@@ -31,6 +31,16 @@ if ($status == false) {
     $user_post_count = $result['count'];
 }
 
+// 最多投稿数のユーザーを取得
+$stmt = $pdo->prepare("SELECT username, COUNT(*) as count FROM gs_bm_table GROUP BY username ORDER BY count DESC LIMIT 1");
+$status = $stmt->execute();
+
+if ($status == false) {
+    sql_error($stmt);
+} else {
+    $top_user = $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
 // POSTデータ取得
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $username = filter_input(INPUT_POST, "username");
@@ -199,6 +209,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         #image-preview {
             display: none;
         }
+        .crown {
+            color: gold;
+            margin-left: 5px;
+        }
         @media (max-width: 768px) {
             .container {
                 max-width: 90%;
@@ -228,7 +242,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <?php endif; ?>
             </div>
             <a>&ensp;</a>
-            <span class="welcome-message"><?=$_SESSION["username"]?>さんの悩み、解決します！</span>
+            <span class="welcome-message">
+                <?=$_SESSION["username"]?>さんの悩み、解決します！
+                <?php if ($_SESSION["username"] == $top_user['username']): ?>
+                    <i class="fas fa-crown crown" title="最多投稿ユーザー"></i>
+                <?php endif; ?>
+            </span>
         </div>
         <div class="nav-links">
             <a class="navbar-brand" href="select.php"><i class="fa fa-table"></i>登録データ一覧</a>
@@ -243,6 +262,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <!-- ユーザーの投稿数を表示 -->
         <div class="alert alert-info mb-4">
             あなたの解決本投稿数: <?= h($user_post_count) ?> 件
+            <?php if ($_SESSION["username"] == $top_user['username']): ?>
+                <i class="fas fa-crown crown" title="最多投稿ユーザー"></i>
+            <?php endif; ?>
         </div>
         
         <form method="POST" enctype="multipart/form-data">
