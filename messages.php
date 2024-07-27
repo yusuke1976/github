@@ -16,12 +16,29 @@ if (isset($_POST['delete_message'])) {
     $stmt->execute();
 }
 
+// 返信処理
+if (isset($_POST['reply_message'])) {
+    $reply_to = $_POST['reply_to'];
+    $reply_message = $_POST['reply_message'];
+    $stmt = $pdo->prepare("INSERT INTO gs_messages_table (sender_username, receiver_username, message, created_at) VALUES (:sender, :receiver, :message, NOW())");
+    $stmt->bindValue(':sender', $username, PDO::PARAM_STR);
+    $stmt->bindValue(':receiver', $reply_to, PDO::PARAM_STR);
+    $stmt->bindValue(':message', $reply_message, PDO::PARAM_STR);
+    $stmt->execute();
+}
+
 // ユーザーのプロフィール画像を取得
 $stmt = $pdo->prepare("SELECT profile_image FROM gs_user_table5 WHERE username = :username");
 $stmt->bindValue(':username', $_SESSION['username'], PDO::PARAM_STR);
 $stmt->execute();
 $user = $stmt->fetch(PDO::FETCH_ASSOC);
 $profile_image = $user['profile_image'] ? 'uploads/' . $user['profile_image'] : 'path/to/default/image.jpg';
+
+// 最多投稿者を取得
+$stmt = $pdo->prepare("SELECT username FROM gs_bm_table GROUP BY username ORDER BY COUNT(*) DESC LIMIT 1");
+$stmt->execute();
+$top_poster = $stmt->fetch(PDO::FETCH_ASSOC);
+$top_poster_username = $top_poster['username'];
 
 // 受信したメッセージを取得（送信者のプロフィール画像も含める）
 $stmt = $pdo->prepare("SELECT m.*, u.profile_image FROM gs_messages_table m 
@@ -182,9 +199,15 @@ $sent_messages = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <div class="message received">
                     <img src="<?= $message['profile_image'] ? 'uploads/' . $message['profile_image'] : 'path/to/default/image.jpg' ?>" alt="Profile" class="message-img">
                     <div class="message-content">
-                        <strong> From: <?= h($message['sender_username']) ?></strong>
+                        <strong>
+                            From: <?= h($message['sender_username']) ?>
+                            <?php if ($message['sender_username'] === $top_poster_username): ?>
+                                <i class="fas fa-crown text-warning" title="最多投稿者"></i>
+                            <?php endif; ?>
+                        </strong>
                         <p><?= h($message['message']) ?></p>
                         <small><i class="far fa-clock"></i> <?= h($message['created_at']) ?></small>
+                        <button class="btn btn-primary btn-sm reply-btn" data-toggle="modal" data-target="#replyModal" data-username="<?= h($message['sender_username']) ?>">返信</button>
                     </div>
                 </div>
             <?php endforeach; ?>
@@ -196,7 +219,12 @@ $sent_messages = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <div class="message sent">
                     <img src="<?= $message['profile_image'] ? 'uploads/' . $message['profile_image'] : 'path/to/default/image.jpg' ?>" alt="Profile" class="message-img">
                     <div class="message-content">
-                        <strong> To: <?= h($message['receiver_username']) ?></strong>
+                        <strong>
+                            To: <?= h($message['receiver_username']) ?>
+                            <?php if ($message['receiver_username'] === $top_poster_username): ?>
+                                <i class="fas fa-crown text-warning" title="最多投稿者"></i>
+                            <?php endif; ?>
+                        </strong>
                         <p><?= h($message['message']) ?></p>
                         <small><i class="far fa-clock"></i> <?= h($message['created_at']) ?></small>
                         <form method="POST" style="display: inline;">
@@ -209,8 +237,43 @@ $sent_messages = $stmt->fetchAll(PDO::FETCH_ASSOC);
         </div>
     </div>
 
+    <!-- 返信モーダル -->
+    <div class="modal fade" id="replyModal" tabindex="-1" role="dialog" aria-labelledby="replyModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="replyModalLabel">返信</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form method="POST">
+                    <div class="modal-body">
+                        <input type="hidden" name="reply_to" id="replyTo">
+                        <div class="form-group">
+                            <label for="replyMessage">メッセージ:</label>
+                            <textarea class="form-control" id="replyMessage" name="reply_message" rows="3" required></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">キャンセル</button>
+                        <button type="submit" class="btn btn-primary">送信</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('.reply-btn').click(function() {
+                var username = $(this).data('username');
+                $('#replyTo').val(username);
+            });
+        });
+    </script>
 </body>
 </html>
