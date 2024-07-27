@@ -19,6 +19,18 @@ if ($status == false) {
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
+// ユーザーのデータ登録数を取得
+$stmt = $pdo->prepare("SELECT COUNT(*) as count FROM gs_bm_table WHERE username = :username");
+$stmt->bindValue(':username', $_SESSION['username'], PDO::PARAM_STR);
+$status = $stmt->execute();
+
+if ($status == false) {
+    sql_error($stmt);
+} else {
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    $user_post_count = $result['count'];
+}
+
 // POSTデータ取得
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $username = filter_input(INPUT_POST, "username");
@@ -227,6 +239,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     <div class="container">
         <h2 class="mb-4 font-weight-bold">ユーザー情報編集</h2>
+
+        <!-- ユーザーの投稿数を表示 -->
+        <div class="alert alert-info mb-4">
+            あなたの解決本投稿数: <?= h($user_post_count) ?> 件
+        </div>
+        
         <form method="POST" enctype="multipart/form-data">
             <div class="profile-image-container">
                 <?php if (!empty($user['profile_image'])): ?>
