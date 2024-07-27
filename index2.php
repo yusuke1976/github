@@ -184,7 +184,7 @@ $worry_id = isset($_GET['worry_id']) ? $_GET['worry_id'] : '';
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script>
         function openBarcodeScanner() {
-            window.open('index5.html', 'BarcodeScanner', 'width=660,height=500');
+            window.open('index5.php', 'BarcodeScanner', 'width=660,height=500');
         }
     </script>
 </body>
