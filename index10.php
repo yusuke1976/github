@@ -12,6 +12,11 @@ $stmt->execute();
 $user = $stmt->fetch(PDO::FETCH_ASSOC);
 $profile_image = $user['profile_image'] ? 'uploads/' . $user['profile_image'] : 'path/to/default/image.jpg';
 
+// 最多投稿者を取得
+$stmt = $pdo->prepare("SELECT username FROM gs_bm_table GROUP BY username ORDER BY COUNT(*) DESC LIMIT 1");
+$stmt->execute();
+$top_poster = $stmt->fetch(PDO::FETCH_ASSOC);
+
 // Ajaxリクエストの処理
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'add_comment') {
     $worry_id = $_POST['worry_id'];
@@ -96,7 +101,7 @@ if (isset($_POST['action']) && $_POST['action'] === 'delete_worry') {
 
 // 悩みデータ取得（投稿者のプロフィール画像も含める）
 $stmt = $pdo->prepare("
-    SELECT gs_worry.*, gs_user_table5.profile_image 
+    SELECT gs_worry.*, gs_user_table5.profile_image
     FROM gs_worry 
     LEFT JOIN gs_user_table5 ON gs_worry.username = gs_user_table5.username 
     ORDER BY gs_worry.date DESC
@@ -230,20 +235,24 @@ $status = $stmt->execute();
         }
 
         .poster-info {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        width: 100%;
-    }
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
 
-    .poster-info > div {
-        display: flex;
-        align-items: center;
-    }
+        .poster-info > div {
+            display: flex;
+            align-items: center;
+        }
 
-    .btn-danger.btn-sm {
-        margin-left: 10px;
-    }
+        .btn-danger.btn-sm {
+            margin-left: 10px;
+        }
+        .crown-icon {
+            color: gold;
+            margin-left: 5px;
+        }
     </style>
 </head>
 <body>
@@ -273,7 +282,13 @@ $status = $stmt->execute();
             <div class="poster-info d-flex justify-content-between align-items-center">
                 <div>
                     <img src="<?= $poster_image ?>" alt="Poster Profile Image" class="profile-img">
-                    <span>投稿者: <?=$result["username"]?> | 日時: <?=$result["date"]?></span>
+                    <span>
+                        投稿者: <?=$result["username"]?>
+                        <?php if ($result["username"] === $top_poster['username']): ?>
+                            <i class="fas fa-crown crown-icon" title="最多投稿者"></i>
+                        <?php endif; ?>
+                        | 日時: <?=$result["date"]?>
+                    </span>
                 </div>
                 <?php if ($result["username"] === $_SESSION['username']): ?>
                     <button type="button" class="btn btn-danger btn-sm ml-2" onclick="deleteWorry(<?=$result['id']?>)">削除</button>
@@ -304,7 +319,12 @@ $status = $stmt->execute();
                     ?>
                     <div class="comment" id="comment<?=$comment['id']?>">
                         <div class="comment-header">
-                            <span class="comment-username"><?=$comment['username']?></span>
+                            <span class="comment-username">
+                                <?=$comment['username']?>
+                                <?php if ($comment['username'] === $top_poster['username']): ?>
+                                    <i class="fas fa-crown crown-icon" title="最多投稿者"></i>
+                                <?php endif; ?>
+                            </span>
                             <span class="comment-date"><?=date('Y/m/d H:i', strtotime($comment['created_at']))?></span>
                             <?php if ($comment['username'] === $_SESSION['username']): ?>
                                 <span class="delete-comment" onclick="deleteComment(<?=$comment['id']?>)"><i class="fas fa-trash-alt"></i></span>
