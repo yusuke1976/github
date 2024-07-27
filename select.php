@@ -45,6 +45,11 @@ if(isset($_POST['helpful'])) {
   }
 }
 
+// 最多投稿者を取得
+$stmt = $pdo->prepare("SELECT username, COUNT(*) as post_count FROM gs_bm_table GROUP BY username ORDER BY post_count DESC LIMIT 1");
+$stmt->execute();
+$top_poster = $stmt->fetch(PDO::FETCH_ASSOC);
+
 // データ取得SQL作成
 $sql = "SELECT b.*, u.genre FROM gs_bm_table b JOIN gs_user_table5 u ON b.username = u.username WHERE 1=1";
 $params = array();
@@ -78,7 +83,12 @@ if ($status == false) {
         $view .= '<div class="card-body">';
         $view .= '<h5 class="card-title">' . h($result['book']) . '</h5>';
         $view .= '<h6 class="card-subtitle mb-2 text-muted">' . h($result['date']) . '</h6>';
-        $view .= '<p class="card-text"><strong>投稿者：</strong>' . h($result['username']) . '</p>';
+        // 投稿者名の表示を変更
+        $view .= '<p class="card-text"><strong>投稿者：</strong>' . h($result['username']);
+        if ($result['username'] === $top_poster['username']) {
+            $view .= ' <i class="fas fa-crown text-warning" title="最多投稿者"></i>';
+        }
+        
         $view .= '<p class="card-text"><strong>悩み：</strong>' . h($result['worry']) . '</p>';
         $view .= '<p class="card-text"><strong>コメント：</strong>' . h($result['coment']) . '</p>';
         $view .= '<a href="' . h($result['url']) . '" class="btn btn-primary btn-block mb-2" target="_blank"><i class="fas fa-external-link-alt"></i> 詳細を見る</a>';
