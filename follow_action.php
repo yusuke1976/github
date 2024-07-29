@@ -23,7 +23,7 @@ $stmt->bindValue(':followed', $followed_username, PDO::PARAM_STR);
 
 try {
     $stmt->execute();
-    echo json_encode(['success' => true]);
+    echo json_encode(['success' => true, 'action' => $action]);
 } catch (PDOException $e) {
     echo json_encode(['success' => false, 'message' => $e->getMessage()]);
 }

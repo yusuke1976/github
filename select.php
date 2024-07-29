@@ -544,9 +544,13 @@ $(document).ready(function() {
             success: function(response) {
                 if (response.success) {
                     if (action === 'follow') {
-                        button.text('フォロー解除').removeClass('btn-primary').addClass('btn-secondary');
+                        $('.follow-btn[data-username="' + username + '"]').each(function() {
+                            $(this).text('フォロー解除').removeClass('btn-primary').addClass('btn-secondary');
+                        });
                     } else {
-                        button.text('フォローする').removeClass('btn-secondary').addClass('btn-primary');
+                        $('.follow-btn[data-username="' + username + '"]').each(function() {
+                            $(this).text('フォローする').removeClass('btn-secondary').addClass('btn-primary');
+                        });
                     }
                 } else {
                     alert('エラー: ' + response.message);
