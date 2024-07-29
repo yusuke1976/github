@@ -41,6 +41,30 @@ if ($status == false) {
     $top_user = $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
+// フォロワー数を取得
+$stmt = $pdo->prepare("SELECT COUNT(*) as follower_count FROM user_follows WHERE followed_username = :username");
+$stmt->bindValue(':username', $_SESSION['username'], PDO::PARAM_STR);
+$status = $stmt->execute();
+
+if ($status == false) {
+    sql_error($stmt);
+} else {
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    $follower_count = $result['follower_count'];
+}
+
+// フォロー中の数を取得
+$stmt = $pdo->prepare("SELECT COUNT(*) as following_count FROM user_follows WHERE follower_username = :username");
+$stmt->bindValue(':username', $_SESSION['username'], PDO::PARAM_STR);
+$status = $stmt->execute();
+
+if ($status == false) {
+    sql_error($stmt);
+} else {
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    $following_count = $result['following_count'];
+}
+
 // POSTデータ取得
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $username = filter_input(INPUT_POST, "username");
@@ -259,12 +283,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <div class="container">
         <h2 class="mb-4 font-weight-bold">ユーザー情報編集</h2>
 
-        <!-- ユーザーの投稿数を表示 -->
+        <!-- ユーザーの投稿数、フォロワー数、フォロー中の数を表示 -->
         <div class="alert alert-info mb-4">
-            あなたの解決本投稿数: <?= h($user_post_count) ?> 件
+            <p>あなたの解決本投稿数: <?= h($user_post_count) ?> 件
             <?php if ($_SESSION["username"] == $top_user['username']): ?>
                 <i class="fas fa-crown crown" title="最多投稿ユーザー"></i>
-            <?php endif; ?>
+            <?php endif; ?></p>
+            <p>フォロワー: <?= h($follower_count) ?> 人</p>
+            <p>フォロー中: <?= h($following_count) ?> 人</p>
         </div>
         
         <form method="POST" enctype="multipart/form-data">

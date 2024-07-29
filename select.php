@@ -50,6 +50,13 @@ $stmt = $pdo->prepare("SELECT username, COUNT(*) as post_count FROM gs_bm_table 
 $stmt->execute();
 $top_poster = $stmt->fetch(PDO::FETCH_ASSOC);
 
+// フォロー状態を確認する関数
+function isFollowing($pdo, $follower, $followed) {
+    $stmt = $pdo->prepare("SELECT * FROM user_follows WHERE follower_username = :follower AND followed_username = :followed");
+    $stmt->execute([':follower' => $follower, ':followed' => $followed]);
+    return $stmt->rowCount() > 0;
+}
+
 // データ取得SQL作成
 $sql = "SELECT b.*, u.genre FROM gs_bm_table b JOIN gs_user_table5 u ON b.username = u.username WHERE 1=1";
 $params = array();
@@ -102,6 +109,14 @@ if ($status == false) {
         $view .= '<button class="btn btn-helpful btn-block mb-2 helpful-button' . ($isVoted ? ' voted' : '') . '" data-id="' . h($result['id']) . '">';
         $view .= '<i class="' . ($isVoted ? 'fas' : 'far') . ' fa-heart mr-2"></i><span class="button-text">' . ($isVoted ? 'キャンセル' : '助かりました') . '</span> <span class="helpful-count">' . h($result['helpful_count']) . '</span>';
         $view .= '</button>';
+
+        // フォローボタンを追加
+        if ($result['username'] !== $_SESSION['username']) {
+            $isFollowing = isFollowing($pdo, $_SESSION['username'], $result['username']);
+            $followBtnClass = $isFollowing ? 'btn-secondary' : 'btn-primary';
+            $followBtnText = $isFollowing ? 'フォロー解除' : 'フォローする';
+            $view .= '<button class="btn ' . $followBtnClass . ' btn-block mb-2 follow-btn" data-username="' . h($result['username']) . '">' . $followBtnText . '</button>';
+        }
 
         if ($result['username'] === $_SESSION['username'] || $_SESSION['username'] === 'admin') {
             $view .= '<div class="d-flex justify-content-between">';
@@ -507,6 +522,40 @@ $('#sendMessageBtn').on('click', function() {
         error: function() {
             alert('通信エラーが発生しました。');
         }
+    });
+});
+</script>
+
+<script>
+$(document).ready(function() {
+    $('.follow-btn').on('click', function() {
+        var button = $(this);
+        var username = button.data('username');
+        var action = button.text() === 'フォローする' ? 'follow' : 'unfollow';
+
+        $.ajax({
+            url: 'follow_action.php',
+            type: 'POST',
+            data: {
+                action: action,
+                username: username
+            },
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    if (action === 'follow') {
+                        button.text('フォロー解除').removeClass('btn-primary').addClass('btn-secondary');
+                    } else {
+                        button.text('フォローする').removeClass('btn-secondary').addClass('btn-primary');
+                    }
+                } else {
+                    alert('エラー: ' + response.message);
+                }
+            },
+            error: function() {
+                alert('通信エラーが発生しました。');
+            }
+        });
     });
 });
 </script>
