@@ -148,6 +148,16 @@ $profile_image = $user['profile_image'] ? 'uploads/' . $user['profile_image'] : 
                     width: 100%;
                     margin-bottom: 10px;
                 }
+                #formText {
+                    height: 60px; /* スマホ画面での高さを増加 */
+                }
+                #formText::placeholder {
+                    font-size: 14px;
+                    white-space: normal;
+                    overflow: visible;
+                    position: absolute; /* プレースホルダーを絶対位置に */
+                    top: 8px; /* 上部から8pxの位置に配置 */
+                }
             }
         </style>
     </head>
@@ -182,10 +192,17 @@ $profile_image = $user['profile_image'] ? 'uploads/' . $user['profile_image'] : 
                     </div>
 
                     <div class="input-group mt-4">
-                        <input type="text" id="formText" name="myFormText" class="form-control" placeholder="キーワード（本のタイトルや内容、著者等）を入力" aria-label="books" aria-describedby="btn">
+                        <input type="text" id="formText" name="myFormText" class="form-control" placeholder="キーワード（本のタイトルや内容、著者等）を入力して検索" aria-label="books" aria-describedby="btn">
                         <button id="btn" class="btn btn-primary"><i class="fas fa-search"></i>検索</button>
                         <button id="resetBtn" class="btn btn-secondary"><i class="fas fa-undo"></i>リセット</button>
                     </div>                            
+
+                    <!-- 青空文庫へのリンクを追加 -->
+                    <div class="mt-4">
+                        <a href="https://www.aozora.gr.jp/" target="_blank" class="btn btn-info">
+                            <i class="fas fa-book mr-2"></i>青空文庫で無料の書籍を探す
+                        </a>
+                    </div>
                 </div>
             </section>
 
