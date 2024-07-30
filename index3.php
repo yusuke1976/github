@@ -114,6 +114,22 @@ $profile_image = $user['profile_image'] ? 'uploads/' . $user['profile_image'] : 
             background-color: #2c3340;
             border-color: #2c3340;
         }
+        .voice-btn {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .voice-btn.stop {
+            background-color: #f44336;
+        }
         
         @media (max-width: 768px) {
             .container {
@@ -151,6 +167,14 @@ $profile_image = $user['profile_image'] ? 'uploads/' . $user['profile_image'] : 
                             <div class="form-group">
                                 <label for="worry">あなたの悩み</label>
                                 <textarea class="form-control" id="worry" name="worry" rows="4" placeholder="ここに悩みを入力してください"></textarea>
+                                <div class="input-group-append mt-2">
+                                    <button type="button" class="voice-btn" id="voiceBtn">
+                                        <i class="fas fa-microphone"></i> 音声入力開始
+                                    </button>
+                                    <button type="button" class="voice-btn stop" id="stopBtn" style="display:none;">
+                                        <i class="fas fa-stop"></i> 音声入力終了
+                                    </button>
+                                </div>
                             </div>
                             <button type="submit" class="btn btn-primary btn-block">送信</button>
                         </form>
@@ -163,6 +187,52 @@ $profile_image = $user['profile_image'] ? 'uploads/' . $user['profile_image'] : 
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        const voiceBtn = document.getElementById('voiceBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const worryTextarea = document.getElementById('worry');
+        let recognition;
+
+        if ('webkitSpeechRecognition' in window) {
+            recognition = new webkitSpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = 'ja-JP';
+
+            recognition.onresult = function(event) {
+                let finalTranscript = '';
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        finalTranscript += event.results[i][0].transcript;
+                    }
+                }
+                if (finalTranscript) {
+                    worryTextarea.value += finalTranscript + ' ';
+                }
+            };
+
+            voiceBtn.addEventListener('click', function() {
+                recognition.start();
+                voiceBtn.style.display = 'none';
+                stopBtn.style.display = 'inline-block';
+            });
+
+            stopBtn.addEventListener('click', function() {
+                recognition.stop();
+                voiceBtn.style.display = 'inline-block';
+                stopBtn.style.display = 'none';
+            });
+
+            recognition.onend = function() {
+                voiceBtn.style.display = 'inline-block';
+                stopBtn.style.display = 'none';
+            };
+        } else {
+            voiceBtn.style.display = 'none';
+            stopBtn.style.display = 'none';
+            console.log('Web Speech API is not supported in this browser.');
+        }
+    </script>
 </body>
 
 </html>
