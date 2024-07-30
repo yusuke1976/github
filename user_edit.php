@@ -133,6 +133,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 }
 
+// フォロワーのリストを取得
+$stmt = $pdo->prepare("SELECT follower_username FROM user_follows WHERE followed_username = :username");
+$stmt->bindValue(':username', $_SESSION['username'], PDO::PARAM_STR);
+$stmt->execute();
+$followers = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+// フォロー中のユーザーリストを取得
+$stmt = $pdo->prepare("SELECT followed_username FROM user_follows WHERE follower_username = :username");
+$stmt->bindValue(':username', $_SESSION['username'], PDO::PARAM_STR);
+$stmt->execute();
+$following = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
 ?>
 
 <!DOCTYPE html>
@@ -252,6 +264,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 margin-bottom: 0;
             }
         }
+        .modal-dialog {
+            max-width: 300px;
+        }
+        .modal-body {
+            max-height: 300px;
+            overflow-y: auto;
+        }
     </style>
 </head>
 <body>
@@ -289,8 +308,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <?php if ($_SESSION["username"] == $top_user['username']): ?>
                 <i class="fas fa-crown crown" title="最多投稿ユーザー"></i>
             <?php endif; ?></p>
-            <p>フォロワー: <?= h($follower_count) ?> 人</p>
-            <p>フォロー中: <?= h($following_count) ?> 人</p>
+            <p><a href="#" data-toggle="modal" data-target="#followersModal">フォロワー: <?= h($follower_count) ?> 人</a></p>
+            <p><a href="#" data-toggle="modal" data-target="#followingModal">フォロー中: <?= h($following_count) ?> 人</a></p>
         </div>
         
         <form method="POST" enctype="multipart/form-data">
@@ -343,6 +362,59 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         </form>
     </div>
 
+    <!-- フォロワーモーダル -->
+    <div class="modal fade" id="followersModal" tabindex="-1" role="dialog" aria-labelledby="followersModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="followersModalLabel">フォロワー</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <?php if (empty($followers)): ?>
+                        <p>フォロワーはいません。</p>
+                    <?php else: ?>
+                        <ul class="list-group">
+                            <?php foreach ($followers as $follower): ?>
+                                <li class="list-group-item"><?= h($follower) ?></li>
+                            <?php endforeach; ?>
+                        </ul>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- フォロー中モーダル -->
+    <div class="modal fade" id="followingModal" tabindex="-1" role="dialog" aria-labelledby="followingModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="followingModalLabel">フォロー中</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <?php if (empty($following)): ?>
+                        <p>フォロー中のユーザーはいません。</p>
+                    <?php else: ?>
+                        <ul class="list-group">
+                            <?php foreach ($following as $followed): ?>
+                                <li class="list-group-item"><?= h($followed) ?></li>
+                            <?php endforeach; ?>
+                        </ul>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script>
     function previewImage(input) {
         var preview = document.getElementById('image-preview');

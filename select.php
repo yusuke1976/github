@@ -31,6 +31,20 @@ $stmt = $pdo->prepare("SELECT COUNT(*) FROM notifications WHERE recipient_userna
 $stmt->execute([':username' => $_SESSION['username']]);
 $unread_count = $stmt->fetchColumn();
 
+// 通知ドロップダウンメニューの HTML を更新
+$notification_html = '';
+if (empty($notifications)) {
+    $notification_html .= '<a class="dropdown-item" href="#">通知はありません</a>';
+} else {
+    foreach ($notifications as $notification) {
+        $notification_html .= '<a class="dropdown-item ' . ($notification['is_read'] ? '' : 'font-weight-bold') . '" href="#">';
+        $notification_html .= h($notification['message']);
+        $notification_html .= '</a>';
+    }
+    $notification_html .= '<div class="dropdown-divider"></div>';
+    $notification_html .= '<a class="dropdown-item" href="mark_all_read.php">すべて既読にする</a>';
+}
+
 // 検索キーワードとフィルターオプションを取得
 $search_keyword = isset($_GET['search']) ? $_GET['search'] : '';
 $filter_different_genre = isset($_GET['filter_different_genre']) ? $_GET['filter_different_genre'] : false;
@@ -316,21 +330,11 @@ if ($status == false) {
         <a class="nav-link dropdown-toggle text-white" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
             <i class="fas fa-bell"></i>
             <?php if ($unread_count > 0): ?>
-            <span class="notification-badge"><?= $unread_count ?></span>
+            <span class="badge badge-danger"><?= $unread_count ?></span>
             <?php endif; ?>
         </a>
         <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-            <?php if (empty($notifications)): ?>
-            <a class="dropdown-item" href="#">通知はありません</a>
-            <?php else: ?>
-            <?php foreach ($notifications as $notification): ?>
-                <a class="dropdown-item <?= $notification['is_read'] ? '' : 'font-weight-bold' ?>" href="#">
-                <?= h($notification['message']) ?>
-                </a>
-            <?php endforeach; ?>
-            <div class="dropdown-divider"></div>
-            <a class="dropdown-item" href="mark_all_read.php">すべて既読にする</a>
-            <?php endif; ?>
+            <?= $notification_html ?>
         </div>
         </li>
 
@@ -599,15 +603,16 @@ $(document).ready(function() {
 </script>
 
 <script>
+<script>
 function loadNotifications() {
     $.ajax({
         url: 'get_notifications.php',
         type: 'GET',
         dataType: 'json',
         success: function(response) {
-            var menu = $('#notificationMenu');
+            var menu = $('.dropdown-menu');
             menu.empty();
-            $('#notificationCount').text(response.unread);
+            $('.badge-danger').text(response.unread);
             
             if (response.notifications.length === 0) {
                 menu.append('<a class="dropdown-item" href="#">通知はありません</a>');

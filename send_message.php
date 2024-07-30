@@ -15,6 +15,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $stmt->bindValue(':message', $message, PDO::PARAM_STR);
     
     if ($stmt->execute()) {
+        // 通知を作成
+        $notification_message = $sender_username . "さんからメッセージが届きました。";
+        $stmt = $pdo->prepare("INSERT INTO notifications (recipient_username, message, created_at, is_read) VALUES (:recipient, :message, NOW(), FALSE)");
+        $stmt->bindValue(':recipient', $receiver_username, PDO::PARAM_STR);
+        $stmt->bindValue(':message', $notification_message, PDO::PARAM_STR);
+        $stmt->execute();
+
         echo json_encode(['success' => true, 'message' => 'メッセージが送信されました。']);
     } else {
         echo json_encode(['success' => false, 'message' => 'メッセージの送信に失敗しました。']);

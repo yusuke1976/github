@@ -5,7 +5,14 @@ include "funcs.php";
 $pdo = db_conn();
 sschk();
 
-$stmt = $pdo->prepare("UPDATE notifications SET is_read = TRUE WHERE recipient_username = :username");
-$stmt->execute([':username' => $_SESSION['username']]);
+$username = $_SESSION['username'];
 
-header('Location: select.php');
+// すべての通知を既読にする
+$stmt = $pdo->prepare("UPDATE notifications SET is_read = TRUE WHERE recipient_username = :username");
+$stmt->bindValue(':username', $username, PDO::PARAM_STR);
+$stmt->execute();
+
+// select.phpにリダイレクト
+header("Location: select.php");
+exit();
+?>

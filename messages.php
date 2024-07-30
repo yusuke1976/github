@@ -25,6 +25,13 @@ if (isset($_POST['reply_message'])) {
     $stmt->bindValue(':receiver', $reply_to, PDO::PARAM_STR);
     $stmt->bindValue(':message', $reply_message, PDO::PARAM_STR);
     $stmt->execute();
+
+    // 通知を作成
+    $notification_message = $username . "さんからメッセージが届きました。";
+    $stmt = $pdo->prepare("INSERT INTO notifications (recipient_username, message, created_at, is_read) VALUES (:recipient, :message, NOW(), FALSE)");
+    $stmt->bindValue(':recipient', $reply_to, PDO::PARAM_STR);
+    $stmt->bindValue(':message', $notification_message, PDO::PARAM_STR);
+    $stmt->execute();
 }
 
 // ユーザーのプロフィール画像を取得
