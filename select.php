@@ -22,6 +22,15 @@ $stmt->execute();
 $user = $stmt->fetch(PDO::FETCH_ASSOC);
 $user_genre = $user['genre'];
 
+// 通知を取得
+$stmt = $pdo->prepare("SELECT * FROM notifications WHERE recipient_username = :username ORDER BY created_at DESC LIMIT 5");
+$stmt->execute([':username' => $_SESSION['username']]);
+$notifications = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+$stmt = $pdo->prepare("SELECT COUNT(*) FROM notifications WHERE recipient_username = :username AND is_read = FALSE");
+$stmt->execute([':username' => $_SESSION['username']]);
+$unread_count = $stmt->fetchColumn();
+
 // 検索キーワードとフィルターオプションを取得
 $search_keyword = isset($_GET['search']) ? $_GET['search'] : '';
 $filter_different_genre = isset($_GET['filter_different_genre']) ? $_GET['filter_different_genre'] : false;
@@ -264,7 +273,9 @@ if ($status == false) {
         0% { transform: scale(1); opacity: 1; }
         100% { transform: scale(20); opacity: 0; }
     }
-
+    .small-nav-text {
+        font-size: 0.9rem;
+    }
 </style>
 </head>
 <body>
@@ -283,25 +294,48 @@ if ($status == false) {
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav ml-auto">
         <li class="nav-item">
-          <a class="nav-link text-white" href="index3.php"><i class="fas fa-plus-circle"></i> 悩み登録</a>
+          <a class="nav-link text-white small-nav-text" href="index3.php"><i class="fas fa-plus-circle"></i> 悩み登録</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link text-white" href="index10.php"><i class="fas fa-list-ul"></i> 悩み一覧</a>
+          <a class="nav-link text-white small-nav-text" href="index10.php"><i class="fas fa-list-ul"></i> 悩み一覧</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link text-white" href="index2.php"><i class="fas fa-database"></i> データ登録</a>
+          <a class="nav-link text-white small-nav-text" href="index2.php"><i class="fas fa-database"></i> データ登録</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link text-white" href="gpt.php"><i class="fas fa-search"></i> AI書籍検索</a>
+          <a class="nav-link text-white small-nav-text" href="gpt.php"><i class="fas fa-search"></i> AI書籍検索</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link text-white" href="user_edit.php"><i class="fa fa-pen"></i> ユーザー情報編集</a>
+          <a class="nav-link text-white small-nav-text" href="user_edit.php"><i class="fa fa-pen"></i> ユーザー情報編集</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link text-white" href="messages.php"><i class="far fa-envelope"></i> メッセージ</a>
+          <a class="nav-link text-white small-nav-text" href="messages.php"><i class="far fa-envelope"></i> メッセージ</a>
         </li>
+
+        <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle text-white" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <i class="fas fa-bell"></i>
+            <?php if ($unread_count > 0): ?>
+            <span class="notification-badge"><?= $unread_count ?></span>
+            <?php endif; ?>
+        </a>
+        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+            <?php if (empty($notifications)): ?>
+            <a class="dropdown-item" href="#">通知はありません</a>
+            <?php else: ?>
+            <?php foreach ($notifications as $notification): ?>
+                <a class="dropdown-item <?= $notification['is_read'] ? '' : 'font-weight-bold' ?>" href="#">
+                <?= h($notification['message']) ?>
+                </a>
+            <?php endforeach; ?>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" href="mark_all_read.php">すべて既読にする</a>
+            <?php endif; ?>
+        </div>
+        </li>
+
         <li class="nav-item">
-          <a class="nav-link text-white" href="logout.php"><i class="fas fa-sign-out-alt"></i> ログアウト</a>
+          <a class="nav-link text-white small-nav-text" href="logout.php"><i class="fas fa-sign-out-alt"></i> ログアウト</a>
         </li>
       </ul>
     </div>
@@ -561,6 +595,41 @@ $(document).ready(function() {
             }
         });
     });
+});
+</script>
+
+<script>
+function loadNotifications() {
+    $.ajax({
+        url: 'get_notifications.php',
+        type: 'GET',
+        dataType: 'json',
+        success: function(response) {
+            var menu = $('#notificationMenu');
+            menu.empty();
+            $('#notificationCount').text(response.unread);
+            
+            if (response.notifications.length === 0) {
+                menu.append('<a class="dropdown-item" href="#">通知はありません</a>');
+            } else {
+                response.notifications.forEach(function(notification) {
+                    var item = $('<a class="dropdown-item" href="#"></a>');
+                    item.text(notification.message);
+                    if (!notification.is_read) {
+                        item.addClass('font-weight-bold');
+                    }
+                    menu.append(item);
+                });
+                menu.append('<div class="dropdown-divider"></div>');
+                menu.append('<a class="dropdown-item" href="mark_all_read.php">すべて既読にする</a>');
+            }
+        }
+    });
+}
+
+$(document).ready(function() {
+    loadNotifications();
+    setInterval(loadNotifications, 60000); // 1分ごとに更新
 });
 </script>
 

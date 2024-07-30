@@ -19,6 +19,47 @@ $profile_image = $user['profile_image'] ? 'uploads/' . $user['profile_image'] : 
 $worry = isset($_GET['worry']) ? $_GET['worry'] : '';
 $worry_id = isset($_GET['worry_id']) ? $_GET['worry_id'] : '';
 
+// フォームが送信された場合の処理
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $book = $_POST['book'];
+    $url = $_POST['url'];
+    $worry = $_POST['worry'];
+    $coment = $_POST['coment'];
+    $username = $_SESSION['username'];
+    $worry_id = $_POST['worry_id'];
+
+    // データベースに本の情報を挿入
+    $stmt = $pdo->prepare("INSERT INTO gs_bm_table (book, url, worry, coment, username, worry_id, indate) VALUES(:book, :url, :worry, :coment, :username, :worry_id, sysdate())");
+    $stmt->bindValue(':book', $book, PDO::PARAM_STR);
+    $stmt->bindValue(':url', $url, PDO::PARAM_STR);
+    $stmt->bindValue(':worry', $worry, PDO::PARAM_STR);
+    $stmt->bindValue(':coment', $coment, PDO::PARAM_STR);
+    $stmt->bindValue(':username', $username, PDO::PARAM_STR);
+    $stmt->bindValue(':worry_id', $worry_id, PDO::PARAM_STR);
+    $status = $stmt->execute();
+
+    if($status==false) {
+        sql_error($stmt);
+    } else {
+        // 本の投稿が成功した場合、フォロワーに通知を送る
+        $stmt = $pdo->prepare("SELECT follower_username FROM user_follows WHERE followed_username = :username");
+        $stmt->execute([':username' => $_SESSION['username']]);
+        $followers = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+        $message = $_SESSION['username'] . "さんが新しい本「" . $book . "」を投稿しました。";
+        $stmt = $pdo->prepare("INSERT INTO notifications (recipient_username, sender_username, message) VALUES (:recipient, :sender, :message)");
+
+        foreach ($followers as $follower) {
+            $stmt->execute([
+                ':recipient' => $follower,
+                ':sender' => $_SESSION['username'],
+                ':message' => $message
+            ]);
+        }
+
+        redirect('select.php');
+    }
+}
 
 ?>
 
@@ -46,8 +87,8 @@ $worry_id = isset($_GET['worry_id']) ? $_GET['worry_id'] : '';
         .profile-img {
             width: 50px;
             height: 50px;
-            border-radius: 50%;   /* 真円 */
-            object-fit: cover;    /* 枠に合わせて切り取る */
+            border-radius: 50%;
+            object-fit: cover;
         }
 
         .navbar {
@@ -126,7 +167,6 @@ $worry_id = isset($_GET['worry_id']) ? $_GET['worry_id'] : '';
                 padding-right: 20px;
             }
         }
-
     </style>
 </head>
 
@@ -152,7 +192,7 @@ $worry_id = isset($_GET['worry_id']) ? $_GET['worry_id'] : '';
                         <h2 class="mb-0">悩み解決本の登録</h2>
                     </div>
                     <div class="card-body">
-                        <form method="POST" action="insert.php">
+                        <form method="POST" action="">
                             <input type="hidden" name="username" value="<?=$_SESSION['username']?>">
                             <input type="hidden" name="worry_id" value="<?=$worry_id?>">
                             <div class="form-group">
