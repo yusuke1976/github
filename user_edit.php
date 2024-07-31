@@ -31,6 +31,18 @@ if ($status == false) {
     $user_post_count = $result['count'];
 }
 
+// ユーザーの悩み投稿数を取得
+$stmt = $pdo->prepare("SELECT COUNT(*) as count FROM gs_worry WHERE username = :username");
+$stmt->bindValue(':username', $_SESSION['username'], PDO::PARAM_STR);
+$status = $stmt->execute();
+
+if ($status == false) {
+    sql_error($stmt);
+} else {
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    $user_worry_count = $result['count'];
+}
+
 // 最多投稿数のユーザーを取得
 $stmt = $pdo->prepare("SELECT username, COUNT(*) as count FROM gs_bm_table GROUP BY username ORDER BY count DESC LIMIT 1");
 $status = $stmt->execute();
@@ -271,6 +283,12 @@ $following = $stmt->fetchAll(PDO::FETCH_COLUMN);
             max-height: 300px;
             overflow-y: auto;
         }
+        .alert p {
+            margin-bottom: 0.5rem;
+        }
+        .alert p:last-child {
+            margin-bottom: 0;
+        }
     </style>
 </head>
 <body>
@@ -302,12 +320,13 @@ $following = $stmt->fetchAll(PDO::FETCH_COLUMN);
     <div class="container">
         <h2 class="mb-4 font-weight-bold">ユーザー情報編集</h2>
 
-        <!-- ユーザーの投稿数、フォロワー数、フォロー中の数を表示 -->
+        <!-- ユーザーの投稿数、悩み投稿数、フォロワー数、フォロー中の数を表示 -->
         <div class="alert alert-info mb-4">
             <p>あなたの解決本投稿数: <?= h($user_post_count) ?> 件
             <?php if ($_SESSION["username"] == $top_user['username']): ?>
                 <i class="fas fa-crown crown" title="最多投稿ユーザー"></i>
             <?php endif; ?></p>
+            <p>あなたの悩み投稿数: <?= h($user_worry_count) ?> 件</p>
             <p><a href="#" data-toggle="modal" data-target="#followersModal">フォロワー: <?= h($follower_count) ?> 人</a></p>
             <p><a href="#" data-toggle="modal" data-target="#followingModal">フォロー中: <?= h($following_count) ?> 人</a></p>
         </div>
