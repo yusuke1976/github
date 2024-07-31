@@ -80,6 +80,9 @@ function isFollowing($pdo, $follower, $followed) {
     return $stmt->rowCount() > 0;
 }
 
+// ソート順を取得
+$sort_order = isset($_GET['sort']) ? $_GET['sort'] : 'desc';
+
 // データ取得SQL作成
 $sql = "SELECT b.*, u.genre FROM gs_bm_table b JOIN gs_user_table5 u ON b.username = u.username WHERE 1=1";
 $params = array();
@@ -93,6 +96,9 @@ if ($filter_different_genre) {
     $sql .= " AND u.genre != :user_genre";
     $params[':user_genre'] = $user_genre;
 }
+
+// ソート順を適用
+$sql .= " ORDER BY b.date " . ($sort_order === 'asc' ? 'ASC' : 'DESC');
 
 $stmt = $pdo->prepare($sql);
 foreach ($params as $key => $value) {
@@ -283,6 +289,34 @@ if ($status == false) {
         animation: firework-explode 1s ease-out forwards;
     }
 
+    .sort-container {
+        margin-top: 15px;
+    }
+
+    .btn-sort {
+        background-color: #FFA500; /* オレンジ */
+        border-color: #FF8C00;
+        color: white;
+        font-weight: bold;
+        transition: all 0.3s ease;
+    }
+
+    .btn-sort:hover {
+        background-color: #FF8C00; /* ダークオレンジ */
+        border-color: #FF7F50;
+    }
+
+    .btn-sort.active {
+        background-color: #FF4500; /* オレンジレッド */
+        border-color: #FF0000;
+    }
+
+    .btn-sort.active:hover {
+        background-color: #DC143C; /* クリムゾン */
+        border-color: #B22222;
+    }
+
+
     @keyframes firework-explode {
         0% { transform: scale(1); opacity: 1; }
         100% { transform: scale(20); opacity: 0; }
@@ -356,8 +390,8 @@ if ($status == false) {
     </div>
   <?php endif; ?>
 
-  <!-- 検索フォーム -->
-<form action="" method="GET" class="mb-4" id="searchForm">
+    <!-- 検索フォームと並び替えボタン -->
+  <form action="" method="GET" class="mb-4" id="searchForm">
     <div class="input-group">
         <input type="text" class="form-control" placeholder="キーワードを入力" name="search" id="searchInput" value="<?= h($search_keyword) ?>">
         <div class="input-group-append">
@@ -365,13 +399,19 @@ if ($status == false) {
             <button class="btn btn-secondary" type="button" id="resetSearch"><i class="fas fa-undo"></i>リセット</button>
         </div>
     </div>
-    <div class="filter-container">
+    <div class="filter-container mt-2">
         <input class="filter-checkbox" type="checkbox" id="filterDifferentGenre" name="filter_different_genre" value="1" <?= $filter_different_genre ? 'checked' : '' ?>>
         <label class="filter-label" for="filterDifferentGenre">
             <i class="fas fa-filter mr-2"></i> 読書歴が違う人の投稿のみ表示
         </label>
     </div>
-</form>
+    <div class="sort-container mt-2">
+        <button type="submit" name="sort" value="<?= $sort_order === 'asc' ? 'desc' : 'asc' ?>" class="btn btn-sort <?= $sort_order === 'desc' ? 'active' : '' ?>">
+            <i class="fas fa-sort"></i> 
+            <?= $sort_order === 'asc' ? '新しい順に並べ替え' : '古い順に並べ替え' ?>
+        </button>
+    </div>
+  </form>
 
   <?= $view ?>
 
@@ -415,6 +455,11 @@ if ($status == false) {
 document.getElementById('resetSearch').addEventListener('click', function() {
     document.getElementById('searchInput').value = '';
     document.getElementById('filterDifferentGenre').checked = false;
+    // ソート順もリセット
+    var sortButton = document.querySelector('button[name="sort"]');
+    sortButton.value = 'desc';
+    sortButton.innerHTML = '<i class="fas fa-sort"></i> 古い順に並べ替え';
+    sortButton.classList.add('active');
     document.getElementById('searchForm').submit();
 });
 
