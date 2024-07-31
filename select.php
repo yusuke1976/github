@@ -648,7 +648,6 @@ $(document).ready(function() {
 </script>
 
 <script>
-<script>
 function loadNotifications() {
     $.ajax({
         url: 'get_notifications.php',

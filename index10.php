@@ -98,15 +98,31 @@ if (isset($_POST['action']) && $_POST['action'] === 'delete_worry') {
     exit;
 }
 
+// 検索キーワードを取得
+$search_keyword = isset($_GET['search']) ? $_GET['search'] : '';
 
 // 悩みデータ取得（投稿者のプロフィール画像も含める）
-$stmt = $pdo->prepare("
+$sql = "
     SELECT gs_worry.*, gs_user_table5.profile_image
     FROM gs_worry 
     LEFT JOIN gs_user_table5 ON gs_worry.username = gs_user_table5.username 
-    ORDER BY gs_worry.date DESC
-");
+    WHERE 1=1
+";
+
+if (!empty($search_keyword)) {
+    $sql .= " AND gs_worry.worry LIKE :keyword";
+}
+
+$sql .= " ORDER BY gs_worry.date DESC";
+
+$stmt = $pdo->prepare($sql);
+
+if (!empty($search_keyword)) {
+    $stmt->bindValue(':keyword', '%'.$search_keyword.'%', PDO::PARAM_STR);
+}
+
 $status = $stmt->execute();
+
 
 ?>
 
@@ -270,6 +286,18 @@ $status = $stmt->execute();
 
     <div class="container">
         <h1 class="mb-4">悩み一覧</h1>
+
+        <!-- 検索フォーム -->
+        <form action="" method="GET" class="mb-4">
+            <div class="input-group">
+                <input type="text" class="form-control" placeholder="悩みを検索" name="search" value="<?= h($search_keyword) ?>">
+                <div class="input-group-append">
+                    <button class="btn btn-warning" type="submit"><i class="fas fa-search"></i>検索</button>
+                    <button class="btn btn-secondary" type="button" id="resetSearch"><i class="fas fa-undo"></i>リセット</button>
+                </div>
+            </div>
+        </form>
+
         <?php
         if($status==false) {
             sql_error($stmt);
@@ -468,6 +496,11 @@ $status = $stmt->execute();
                 });
             }
         }
+
+        // 検索リセット機能
+        document.getElementById('resetSearch').addEventListener('click', function() {
+            window.location.href = 'index10.php';
+        });
     </script>
 
 </body>
