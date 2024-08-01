@@ -80,10 +80,20 @@ if (isset($_POST['action']) && $_POST['action'] === 'delete_worry') {
     $worry_id = $_POST['worry_id'];
     $username = $_SESSION['username'];
 
+    // adminユーザーチェック
+$is_admin = ($username === 'admin');
+
+if ($is_admin) {
+    // adminの場合、IDのみで削除
+    $stmt = $pdo->prepare("DELETE FROM gs_worry WHERE id = :worry_id");
+    $stmt->bindValue(':worry_id', $worry_id, PDO::PARAM_INT);
+} else {
+    // 通常ユーザーの場合、IDとユーザー名で削除
     $stmt = $pdo->prepare("DELETE FROM gs_worry WHERE id = :worry_id AND username = :username");
     $stmt->bindValue(':worry_id', $worry_id, PDO::PARAM_INT);
     $stmt->bindValue(':username', $username, PDO::PARAM_STR);
-    $result = $stmt->execute();
+}
+$result = $stmt->execute();
 
     if ($result && $stmt->rowCount() > 0) {
         // 関連するコメントも削除
@@ -318,7 +328,7 @@ $status = $stmt->execute();
                         | 日時: <?=$result["date"]?>
                     </span>
                 </div>
-                <?php if ($result["username"] === $_SESSION['username']): ?>
+                <?php if ($result["username"] === $_SESSION['username'] || $_SESSION['username'] === 'admin'): ?>
                     <button type="button" class="btn btn-danger btn-sm ml-2" onclick="deleteWorry(<?=$result['id']?>)">削除</button>
                 <?php endif; ?>
             </div>
