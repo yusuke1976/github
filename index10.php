@@ -44,9 +44,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $comment_id = $_POST['comment_id'];
     $username = $_SESSION['username'];
 
-    $stmt = $pdo->prepare("DELETE FROM gs_worry_comments WHERE id = :comment_id AND username = :username");
-    $stmt->bindValue(':comment_id', $comment_id, PDO::PARAM_INT);
-    $stmt->bindValue(':username', $username, PDO::PARAM_STR);
+    // adminユーザーチェック
+    $is_admin = ($username === 'admin');
+
+    if ($is_admin) {
+        // adminの場合、IDのみで削除
+        $stmt = $pdo->prepare("DELETE FROM gs_worry_comments WHERE id = :comment_id");
+        $stmt->bindValue(':comment_id', $comment_id, PDO::PARAM_INT);
+    } else {
+        // 通常ユーザーの場合、IDとユーザー名で削除
+        $stmt = $pdo->prepare("DELETE FROM gs_worry_comments WHERE id = :comment_id AND username = :username");
+        $stmt->bindValue(':comment_id', $comment_id, PDO::PARAM_INT);
+        $stmt->bindValue(':username', $username, PDO::PARAM_STR);
+    }
     $result = $stmt->execute();
 
     if ($result && $stmt->rowCount() > 0) {
@@ -57,11 +67,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     exit;
 } elseif (isset($_POST['action']) && $_POST['action'] === 'increment_proposal_count') {
     $worry_id = $_POST['worry_id'];
-    
+
     $stmt = $pdo->prepare("UPDATE gs_worry SET proposal_count = proposal_count + 1 WHERE id = :worry_id");
     $stmt->bindValue(':worry_id', $worry_id, PDO::PARAM_INT);
     $result = $stmt->execute();
-    
+
     if ($result) {
         $stmt = $pdo->prepare("SELECT proposal_count FROM gs_worry WHERE id = :worry_id");
         $stmt->bindValue(':worry_id', $worry_id, PDO::PARAM_INT);
@@ -355,6 +365,7 @@ $status = $stmt->execute();
                     $comment_stmt->execute();
                     while ($comment = $comment_stmt->fetch(PDO::FETCH_ASSOC)) {
                     ?>
+
                     <div class="comment" id="comment<?=$comment['id']?>">
                         <div class="comment-header">
                             <span class="comment-username">
@@ -364,12 +375,13 @@ $status = $stmt->execute();
                                 <?php endif; ?>
                             </span>
                             <span class="comment-date"><?=date('Y/m/d H:i', strtotime($comment['created_at']))?></span>
-                            <?php if ($comment['username'] === $_SESSION['username']): ?>
+                            <?php if ($comment['username'] === $_SESSION['username'] || $_SESSION['username'] === 'admin'): ?>
                                 <span class="delete-comment" onclick="deleteComment(<?=$comment['id']?>)"><i class="fas fa-trash-alt"></i></span>
                             <?php endif; ?>
                         </div>
                         <div class="comment-content"><?=$comment['comment']?></div>
                     </div>
+
                     <?php
                     }
                     ?>
